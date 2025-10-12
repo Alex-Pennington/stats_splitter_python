@@ -11,42 +11,281 @@ This system is designed for **commercial firewood production facilities** using 
 - **Production Rates**: Splits per hour, baskets per hour, efficiency tracking
 - **Resource Monitoring**: Fuel consumption, maintenance intervals, operational status
 
-## 🚀 Quick Start
+## 🚀 Deployment Guide
 
 ### Prerequisites
-- Python 3.11+
-- MQTT broker access (credentials required)
-- Windows 10/11 (optimized for Windows deployment)
 
-### Installation
+**All Systems:**
+- Python 3.11+
+- Git (for repository cloning)
+- MQTT broker access (credentials required)
+- Network connectivity to MQTT broker
+
+**Windows Specific:**
+- Windows 10/11 (optimized for Windows deployment)
+- PowerShell (recommended terminal)
+
+**Debian/Ubuntu Specific:**
+- Debian 11+, Ubuntu 20.04+, or Raspberry Pi OS
+- Bash terminal access
+- sudo privileges for system packages
+
+---
+
+## 🖥️ Windows Deployment
+
+### Step 1: System Prerequisites
 
 ```powershell
-# Clone the repository
-git clone <repository-url>
+# Verify Python installation
+python --version
+# Should show Python 3.11+ 
+
+# If Python not installed, download from python.org
+# Make sure to check "Add Python to PATH" during installation
+```
+
+### Step 2: Clone Repository
+
+```powershell
+# Clone from GitHub
+git clone https://github.com/Alex-Pennington/stats_splitter_python.git
 cd stats_splitter_python
+
+# Verify files are present
+dir
+```
+
+### Step 3: Environment Setup
+
+```powershell
+# Create virtual environment (recommended)
+python -m venv splitter_env
+splitter_env\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure MQTT credentials (create .env file)
-# MQTT_BROKER=your.broker.address
-# MQTT_PORT=1883
-# MQTT_USERNAME=your_username
-# MQTT_PASSWORD=your_password
+# Configure MQTT credentials
+copy template.env .env
+# Edit .env with your actual credentials:
+# - Replace YOUR_BROKER_IP_HERE with: 159.203.138.46
+# - Replace YOUR_USERNAME_HERE with: rayven  
+# - Replace YOUR_PASSWORD_HERE with: [your password]
 ```
 
-### Running the System
+### Step 4: Run the System
 
 ```powershell
-# Start the main production monitor (Windows-compatible)
+# Start the production monitor
 python main_windows.py
 
-# In another terminal, run the simulator for testing
-python simulator.py --duration 10 --speed 2
+# In a new PowerShell window, test with simulator
+python simulator.py --duration 5 --speed 2
 
 # Access the dashboard
 # http://localhost:5000 - Live dashboard
 # http://localhost:5000/api/production/summary - API endpoint
+```
+
+### Step 5: Windows Firewall Configuration
+
+```powershell
+# Allow Python through Windows Firewall (if needed)
+# Windows Security > Firewall & network protection > Allow an app
+# Add Python.exe to allowed apps for port 5000
+```
+
+---
+
+## 🐧 Debian/Ubuntu Deployment
+
+### Step 1: System Prerequisites
+
+```bash
+# Update system packages
+sudo apt update && sudo apt upgrade -y
+
+# Install Python and Git
+sudo apt install python3 python3-pip python3-venv git -y
+
+# Verify Python version
+python3 --version
+# Should show Python 3.11+
+```
+
+### Step 2: Clone Repository
+
+```bash
+# Clone from GitHub
+git clone https://github.com/Alex-Pennington/stats_splitter_python.git
+cd stats_splitter_python
+
+# Verify files are present
+ls -la
+```
+
+### Step 3: Environment Setup
+
+```bash
+# Create virtual environment (recommended)
+python3 -m venv splitter_env
+source splitter_env/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure MQTT credentials
+cp template.env .env
+# Edit .env with your actual credentials:
+nano .env
+# - Replace YOUR_BROKER_IP_HERE with: 159.203.138.46
+# - Replace YOUR_USERNAME_HERE with: rayven
+# - Replace YOUR_PASSWORD_HERE with: [your password]
+```
+
+### Step 4: Run the System
+
+```bash
+# Start the production monitor
+python3 main_windows.py
+
+# In a new terminal, test with simulator
+python3 simulator.py --duration 5 --speed 2
+
+# Access the dashboard
+# http://localhost:5000 - Live dashboard
+# http://localhost:5000/api/production/summary - API endpoint
+```
+
+### Step 5: Network Access Setup
+
+```bash
+# For remote access from other farm devices:
+# Find your IP address
+ip addr show | grep inet
+
+# Access from other devices using your IP:
+# http://YOUR-DEBIAN-IP:5000
+
+# Optional: Configure firewall (UFW)
+sudo ufw allow 5000/tcp
+sudo ufw enable
+```
+
+---
+
+## 🔧 Production Service Setup (Linux Only)
+
+### Create Systemd Service
+
+```bash
+# Create service file
+sudo nano /etc/systemd/system/firewood-splitter.service
+```
+
+Service configuration:
+```ini
+[Unit]
+Description=Firewood Splitter Production Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/stats_splitter_python
+Environment=PATH=/home/pi/stats_splitter_python/splitter_env/bin
+ExecStart=/home/pi/stats_splitter_python/splitter_env/bin/python main_windows.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start service:
+```bash
+# Enable service
+sudo systemctl enable firewood-splitter.service
+sudo systemctl start firewood-splitter.service
+
+# Check status
+sudo systemctl status firewood-splitter.service
+
+# View logs
+sudo journalctl -u firewood-splitter.service -f
+```
+
+---
+
+## 🚜 Farm Network Access
+
+### Local Network Configuration
+
+**For Windows:**
+```powershell
+# Find your IP address
+ipconfig | findstr IPv4
+
+# Share access with other farm devices:
+# http://YOUR-WINDOWS-IP:5000
+```
+
+**For Debian/Linux:**
+```bash
+# Find your IP address
+hostname -I
+
+# Share access with other farm devices:
+# http://YOUR-LINUX-IP:5000
+```
+
+### Mobile Device Access
+
+- **Tablets/Phones**: Navigate to `http://farm-computer-ip:5000`
+- **Responsive Design**: Dashboard adapts to mobile screens
+- **Farm WiFi**: Ensure all devices on same network
+
+---
+
+## ✅ Verification Steps
+
+### Test System Functionality
+
+**Both Systems:**
+```
+1. ✅ Repository cloned successfully
+2. ✅ Dependencies installed without errors  
+3. ✅ .env file configured with MQTT credentials
+4. ✅ main_windows.py starts without errors
+5. ✅ Web dashboard accessible at http://localhost:5000
+6. ✅ Simulator produces realistic production data
+7. ✅ MQTT connection established successfully
+8. ✅ Production statistics updating in real-time
+```
+
+### Common Troubleshooting
+
+**Connection Issues:**
+```bash
+# Test MQTT broker connectivity
+ping 159.203.138.46
+
+# Check credentials in .env file
+cat .env | grep MQTT
+```
+
+**Permission Issues (Linux):**
+```bash
+# Fix ownership of project directory
+sudo chown -R $USER:$USER /path/to/stats_splitter_python
+```
+
+**Port 5000 Already in Use:**
+```bash
+# Find process using port 5000
+netstat -tulpn | grep 5000
+# Kill process or change WEB_PORT in .env
 ```
 
 ## 📊 System Architecture
