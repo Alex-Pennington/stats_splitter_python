@@ -120,6 +120,12 @@ class BasketSession:
         self.start_fuel_level = None  # Fuel level at basket start
         self.end_fuel_level = None    # Fuel level at basket completion
         self.fuel_consumed = 0.0      # Calculated fuel consumption
+        self.idle_time = 0.0          # Total accumulated idle time in seconds
+        self.last_activity_time = self.start_time  # Initialize to basket start time
+        self.is_currently_active = False  # Track if we're currently in active state
+        self.break_time = 0.0         # Total accumulated break time in seconds
+        self.on_break = False         # Track if operator is currently on break
+        self.break_start_time = None  # When the current break started
         
     def start_new_cycle(self) -> ProductionCycle:
         """Start a new production cycle"""
@@ -161,6 +167,120 @@ class BasketSession:
     def cycle_count(self) -> int:
         """Total number of cycles (including aborted)"""
         return len(self.cycles)
+    
+    def update_activity(self, timestamp: float = None, is_activity: bool = True):
+        """Update activity tracking and accumulate idle time (but not during breaks)"""
+        if timestamp is None:
+            timestamp = time.time()
+        
+        # Don't update activity if on break
+        if self.on_break:
+            return
+        
+        # If we have a previous time tracked
+        if self.last_activity_time is not None:
+            time_since_last = timestamp - self.last_activity_time
+            if time_since_last > 0:
+                if is_activity:
+                    # If this is activity and we were previously idle, add the idle time
+                    if not self.is_currently_active:
+                        self.idle_time += time_since_last
+                    # Now we're active
+                    self.is_currently_active = True
+                else:
+                    # This is just a status check - don't change state
+                    pass
+        
+        # Update the timestamp for next calculation
+        self.last_activity_time = timestamp
+    
+    def get_current_idle_time(self) -> float:
+        """Get current total idle time including current idle period if idle"""
+        if self.last_activity_time is None:
+            return self.idle_time
+        
+        current_idle = self.idle_time
+        
+        # If we're currently idle, add the current idle period
+        if not self.is_currently_active:
+            current_time = time.time()
+            current_idle_duration = current_time - self.last_activity_time
+            current_idle += current_idle_duration
+            
+        return current_idle
+    
+    def mark_idle(self, timestamp: float = None):
+        """Mark the transition to idle state"""
+        if timestamp is None:
+            timestamp = time.time()
+        
+        # We're now idle
+        self.is_currently_active = False
+        self.last_activity_time = timestamp
+    
+    @property
+    def active_time(self) -> float:
+        """Time spent in active production (total duration - idle time)"""
+        return max(0.0, self.total_duration - self.get_current_idle_time())
+    
+    @property
+    def idle_time_percentage(self) -> float:
+        """Percentage of time spent idle"""
+        if self.total_duration > 0:
+            return (self.get_current_idle_time() / self.total_duration) * 100
+        return 0.0
+    
+    def start_break(self, timestamp: float = None):
+        """Start an operator break - this won't count as idle time"""
+        if timestamp is None:
+            timestamp = time.time()
+        
+        if not self.on_break:
+            self.on_break = True
+            self.break_start_time = timestamp
+            # If we were accumulating idle time, stop that since we're now on break
+            if not self.is_currently_active:
+                # Calculate idle time up to break start
+                idle_duration = timestamp - self.last_activity_time
+                self.idle_time += max(0, idle_duration)
+                self.last_activity_time = timestamp
+    
+    def end_break(self, timestamp: float = None):
+        """End an operator break and resume operation"""
+        if timestamp is None:
+            timestamp = time.time()
+        
+        if self.on_break and self.break_start_time:
+            # Calculate break duration
+            break_duration = timestamp - self.break_start_time
+            self.break_time += max(0, break_duration)
+            
+            # End the break
+            self.on_break = False
+            self.break_start_time = None
+            self.last_activity_time = timestamp
+            # Don't automatically set as active - wait for next activity
+    
+    def get_current_break_time(self) -> float:
+        """Get total break time including current break if active"""
+        total_break = self.break_time
+        
+        # Add current break time if on break
+        if self.on_break and self.break_start_time:
+            current_break_duration = time.time() - self.break_start_time
+            total_break += current_break_duration
+        
+        return total_break
+    
+    @property
+    def operational_time(self) -> float:
+        """Time spent in operation (excludes breaks but includes idle time between cycles)"""
+        return max(0.0, self.total_duration - self.get_current_break_time())
+    
+    @property
+    def productive_time(self) -> float:
+        """Time spent in actual production (excludes both breaks and idle time)"""
+        return max(0.0, self.operational_time - self.get_current_idle_time())
 
 class ProductionStatsEngine:
     """Enhanced statistics engine for firewood splitter production analytics"""
@@ -220,6 +340,12 @@ class ProductionStatsEngine:
                     'start_fuel_level': basket.start_fuel_level,
                     'end_fuel_level': basket.end_fuel_level,
                     'fuel_consumed': basket.fuel_consumed,
+                    'idle_time': basket.idle_time,
+                    'break_time': basket.break_time,
+                    'on_break': basket.on_break,
+                    'break_start_time': basket.break_start_time,
+                    'last_activity_time': basket.last_activity_time,
+                    'is_currently_active': basket.is_currently_active,
                     'cycles': []
                 }
                 
@@ -248,6 +374,12 @@ class ProductionStatsEngine:
                     'start_fuel_level': self.current_basket.start_fuel_level,
                     'end_fuel_level': self.current_basket.end_fuel_level,
                     'fuel_consumed': self.current_basket.fuel_consumed,
+                    'idle_time': self.current_basket.idle_time,
+                    'break_time': self.current_basket.break_time,
+                    'on_break': self.current_basket.on_break,
+                    'break_start_time': self.current_basket.break_start_time,
+                    'last_activity_time': self.current_basket.last_activity_time,
+                    'is_currently_active': self.current_basket.is_currently_active,
                     'cycles': []
                 }
                 
@@ -310,6 +442,12 @@ class ProductionStatsEngine:
                 basket.start_fuel_level = basket_data.get('start_fuel_level')
                 basket.end_fuel_level = basket_data.get('end_fuel_level')
                 basket.fuel_consumed = basket_data.get('fuel_consumed', 0.0)
+                basket.idle_time = basket_data.get('idle_time', 0.0)
+                basket.break_time = basket_data.get('break_time', 0.0)
+                basket.on_break = basket_data.get('on_break', False)
+                basket.break_start_time = basket_data.get('break_start_time')
+                basket.last_activity_time = basket_data.get('last_activity_time')
+                basket.is_currently_active = basket_data.get('is_currently_active', False)
                 
                 # Restore cycles in basket
                 for cycle_data in basket_data.get('cycles', []):
@@ -337,6 +475,12 @@ class ProductionStatsEngine:
                 self.current_basket.start_fuel_level = current_basket_data.get('start_fuel_level')
                 self.current_basket.end_fuel_level = current_basket_data.get('end_fuel_level')
                 self.current_basket.fuel_consumed = current_basket_data.get('fuel_consumed', 0.0)
+                self.current_basket.idle_time = current_basket_data.get('idle_time', 0.0)
+                self.current_basket.break_time = current_basket_data.get('break_time', 0.0)
+                self.current_basket.on_break = current_basket_data.get('on_break', False)
+                self.current_basket.break_start_time = current_basket_data.get('break_start_time')
+                self.current_basket.last_activity_time = current_basket_data.get('last_activity_time')
+                self.current_basket.is_currently_active = current_basket_data.get('is_currently_active', False)
                 
                 # Restore cycles in current basket
                 for cycle_data in current_basket_data.get('cycles', []):
@@ -388,6 +532,9 @@ class ProductionStatsEngine:
                 
             if not self.current_basket:
                 self._start_new_basket()
+            
+            # Update basket idle time tracking - this is actual activity
+            self.current_basket.update_activity(timestamp, is_activity=True)
                 
             # Handle cycle start events and update stage
             if seq_event in [SequenceEvent.START, SequenceEvent.CYCLE_START, SequenceEvent.EXTEND_START]:
@@ -422,6 +569,9 @@ class ProductionStatsEngine:
                     self.total_splits += 1
                     self.current_sequence_stage = SequenceStage.IDLE
                     logger.info(f"Completed split #{self.total_splits} - Stage: IDLE")
+                    
+                    # Mark basket as idle after cycle completion
+                    self.current_basket.mark_idle(timestamp)
                     
                     # Save data after each split completion
                     self._save_data()
@@ -660,6 +810,14 @@ class ProductionStatsEngine:
                     'complete_time_formatted': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(basket.complete_time)) if basket.complete_time else None,
                     'duration_seconds': basket.total_duration,
                     'duration_formatted': f"{basket.total_duration:.1f}s" if basket.total_duration > 0 else "0s",
+                    'idle_time_seconds': basket.idle_time,
+                    'break_time_seconds': basket.break_time,
+                    'operational_time_seconds': basket.operational_time,
+                    'productive_time_seconds': basket.productive_time,
+                    'active_time_seconds': basket.active_time,
+                    'idle_time_percentage': basket.idle_time_percentage,
+                    'break_time_percentage': (basket.break_time / basket.total_duration * 100) if basket.total_duration > 0 else 0,
+                    'operational_time_percentage': (basket.operational_time / basket.total_duration * 100) if basket.total_duration > 0 else 0,
                     'splits_completed': basket.split_count,
                     'cycles_attempted': basket.cycle_count,
                     'success_rate': (basket.split_count / basket.cycle_count * 100) if basket.cycle_count > 0 else 0,
@@ -686,6 +844,14 @@ class ProductionStatsEngine:
                     'complete_time_formatted': 'In Progress',
                     'duration_seconds': self.current_basket.total_duration,
                     'duration_formatted': f"{self.current_basket.total_duration:.1f}s",
+                    'idle_time_seconds': self.current_basket.get_current_idle_time(),
+                    'break_time_seconds': self.current_basket.get_current_break_time(),
+                    'operational_time_seconds': self.current_basket.operational_time,
+                    'productive_time_seconds': self.current_basket.productive_time,
+                    'active_time_seconds': self.current_basket.active_time,
+                    'idle_time_percentage': self.current_basket.idle_time_percentage,
+                    'break_time_percentage': (self.current_basket.get_current_break_time() / self.current_basket.total_duration * 100) if self.current_basket.total_duration > 0 else 0,
+                    'operational_time_percentage': (self.current_basket.operational_time / self.current_basket.total_duration * 100) if self.current_basket.total_duration > 0 else 0,
                     'splits_completed': self.current_basket.split_count,
                     'cycles_attempted': self.current_basket.cycle_count,
                     'success_rate': (self.current_basket.split_count / self.current_basket.cycle_count * 100) if self.current_basket.cycle_count > 0 else 0,

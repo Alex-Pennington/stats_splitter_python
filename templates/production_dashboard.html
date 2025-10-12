@@ -198,7 +198,9 @@
             <p>Real-time monitoring of hydraulic log splitter operations</p>
             <div style="text-align: center; margin-top: 15px;">
                 <a href="/baskets" style="background-color: #007bff; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">📊 Basket History</a>
+                <a href="/viewer" style="background-color: #17a2b8; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">📈 Data Viewer</a>
                 <button onclick="completeBasket()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px; cursor: pointer;">✅ Complete Basket</button>
+                <button onclick="exportData()" style="background-color: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px; cursor: pointer;">💾 Export Data</button>
             </div>
         </div>
 
@@ -226,6 +228,7 @@
         <div class="controls">
             <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
             <button class="btn" onclick="completeBasket()">🗑️ Complete Basket</button>
+            <button class="btn" id="break-btn" onclick="toggleBreak()">☕ Start Break</button>
             <button class="btn danger" onclick="resetStats()">� Reset Statistics</button>
         </div>
 
@@ -303,6 +306,14 @@
             <div class="metric-row">
                 <span class="metric-label">Idle Time:</span>
                 <span class="metric-value" id="idle-time">0m 0s</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Break Time:</span>
+                <span class="metric-value" id="break-time">0m 0s</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Break Status:</span>
+                <span class="metric-value" id="break-status">Not on break</span>
             </div>
             <div class="metric-row">
                 <span class="metric-label">Active Cycle Duration:</span>
@@ -446,6 +457,9 @@
                 document.getElementById('last-updated').textContent = 
                     new Date().toLocaleTimeString();
                 
+                // Update break status
+                await updateBreakStatus();
+                
             } catch (error) {
                 console.error('Error refreshing data:', error);
                 showError(`Failed to refresh data: ${error.message}`);
@@ -467,6 +481,85 @@
                     showError(`Failed to complete basket: ${error.message}`);
                 }
             }
+        }
+
+        // Break control functionality
+        let currentBreakStatus = false;
+
+        async function toggleBreak() {
+            try {
+                const endpoint = currentBreakStatus ? '/api/production/end-break' : '/api/production/start-break';
+                const response = await fetch(endpoint, { method: 'POST' });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('Break toggled:', result.message);
+                await updateBreakStatus();
+                await refreshData();
+            } catch (error) {
+                console.error('Error toggling break:', error);
+                showError(`Failed to toggle break: ${error.message}`);
+            }
+        }
+
+        async function updateBreakStatus() {
+            try {
+                const response = await fetch('/api/production/break-status');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const status = await response.json();
+                currentBreakStatus = status.on_break;
+                
+                // Update button text and style
+                const breakBtn = document.getElementById('break-btn');
+                if (currentBreakStatus) {
+                    breakBtn.textContent = '⏰ End Break';
+                    breakBtn.style.backgroundColor = '#dc3545';  // Red for active break
+                } else {
+                    breakBtn.textContent = '☕ Start Break';
+                    breakBtn.style.backgroundColor = '';  // Default color
+                }
+                
+                // Update break status display
+                document.getElementById('break-status').textContent = 
+                    currentBreakStatus ? 'On break' : 'Not on break';
+                
+                // Update break time display
+                const breakTimeSeconds = status.break_duration || 0;
+                const minutes = Math.floor(breakTimeSeconds / 60);
+                const seconds = Math.floor(breakTimeSeconds % 60);
+                document.getElementById('break-time').textContent = `${minutes}m ${seconds}s`;
+                
+            } catch (error) {
+                console.error('Error updating break status:', error);
+            }
+        }
+
+        function exportData() {
+            // Create a temporary link element to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/baskets/export';
+            link.download = ''; // Let the server set the filename
+            
+            // Trigger the download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show a brief confirmation message
+            const originalText = event.target.textContent;
+            event.target.textContent = '✅ Downloading...';
+            event.target.disabled = true;
+            
+            setTimeout(() => {
+                event.target.textContent = originalText;
+                event.target.disabled = false;
+            }, 2000);
         }
 
         async function resetStats() {

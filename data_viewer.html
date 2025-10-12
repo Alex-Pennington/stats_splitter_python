@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firewood Splitter Data Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d5a27 0%, #4a7c59 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .file-upload {
+            background: #f8f9fa;
+            border: 2px dashed #6c757d;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+        
+        .file-upload.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-upload-btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background 0.3s ease;
+        }
+        
+        .file-upload-btn:hover {
+            background: #0056b3;
+        }
+        
+        .dashboard {
+            display: none;
+        }
+        
+        .dashboard.show {
+            display: block;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h3 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .summary-card .value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .summary-card .subtitle {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .charts-section {
+            margin-bottom: 30px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .chart-canvas {
+            width: 100% !important;
+            height: 300px !important;
+        }
+        
+        .data-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .data-table h3 {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 0;
+            color: #333;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 500px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:hover {
+            background: rgba(0,123,255,0.05);
+        }
+        
+        .number-cell {
+            text-align: right;
+        }
+        
+        .success-rate {
+            font-weight: bold;
+        }
+        
+        .success-rate.good {
+            color: #28a745;
+        }
+        
+        .success-rate.fair {
+            color: #ffc107;
+        }
+        
+        .success-rate.poor {
+            color: #dc3545;
+        }
+        
+        .filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .filter-group input, .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .export-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .export-info h4 {
+            margin-bottom: 10px;
+            color: #1976d2;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .nav-buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .nav-btn {
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .nav-btn:hover {
+            background: #5a6268;
+        }
+        
+        .nav-btn.primary {
+            background: #007bff;
+        }
+        
+        .nav-btn.primary:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🪓 Firewood Splitter Data Viewer</h1>
+            <p>Analyze production data, trends, and performance metrics</p>
+        </div>
+        
+        <div class="content">
+            <div class="nav-buttons">
+                <a href="/" class="nav-btn">← Back to Dashboard</a>
+                <a href="/baskets" class="nav-btn">📊 Live Basket History</a>
+                <button onclick="location.reload()" class="nav-btn">🔄 Reload Viewer</button>
+            </div>
+            
+            <div class="file-upload" id="fileUpload">
+                <h3 style="margin-bottom: 15px;">📁 Load Production Data</h3>
+                <p style="margin-bottom: 20px; color: #6c757d;">
+                    Upload an exported JSON file from the Firewood Splitter system
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".json" />
+                <button class="file-upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #6c757d;">
+                    Or drag and drop a JSON file here
+                </p>
+            </div>
+            
+            <div id="error" class="error"></div>
+            
+            <div id="dashboard" class="dashboard">
+                <div id="exportInfo" class="export-info">
+                    <!-- Export information will be populated here -->
+                </div>
+                
+                <div class="summary-grid" id="summaryGrid">
+                    <!-- Summary cards will be populated here -->
+                </div>
+                
+                <div class="filters" id="filters">
+                    <div class="filter-group">
+                        <label>Date Range</label>
+                        <select id="dateFilter">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">Last 7 Days</option>
+                            <option value="month">Last 30 Days</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Min Success Rate (%)</label>
+                        <input type="number" id="successFilter" min="0" max="100" value="0" />
+                    </div>
+                    <div class="filter-group">
+                        <label>Min Splits</label>
+                        <input type="number" id="splitsFilter" min="0" value="0" />
+                    </div>
+                    <div class="filter-group">
+                        <label>Sort By</label>
+                        <select id="sortFilter">
+                            <option value="date">Date</option>
+                            <option value="splits">Splits</option>
+                            <option value="duration">Duration</option>
+                            <option value="fuel">Fuel Used</option>
+                            <option value="efficiency">Efficiency</option>
+                        </select>
+                    </div>
+                    <button class="nav-btn primary" onclick="applyFilters()">Apply Filters</button>
+                </div>
+                
+                <div class="charts-section">
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>Production Trends Over Time</h3>
+                            <canvas id="trendsChart" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Fuel Efficiency Analysis</h3>
+                            <canvas id="fuelChart" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Success Rate Distribution</h3>
+                            <canvas id="successChart" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Active vs Idle Time</h3>
+                            <canvas id="timeChart" class="chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="data-table">
+                    <h3>📋 Detailed Basket Analysis</h3>
+                    <div class="table-container">
+                        <table id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Basket #</th>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th>Active Time</th>
+                                    <th>Idle Time</th>
+                                    <th>Idle %</th>
+                                    <th>Splits</th>
+                                    <th>Success Rate</th>
+                                    <th>Fuel Used</th>
+                                    <th>Splits/Gallon</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                                <!-- Table data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let loadedData = null;
+        let filteredData = null;
+        let charts = {};
+        
+        // File upload handling
+        const fileUpload = document.getElementById('fileUpload');
+        const fileInput = document.getElementById('fileInput');
+        const dashboard = document.getElementById('dashboard');
+        const errorDiv = document.getElementById('error');
+        
+        // Drag and drop functionality
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+        
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+        
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                showError('Please select a JSON file');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    loadedData = data;
+                    displayData(data);
+                    hideError();
+                } catch (error) {
+                    showError('Invalid JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            dashboard.classList.remove('show');
+        }
+        
+        function hideError() {
+            errorDiv.style.display = 'none';
+        }
+        
+        function displayData(data) {
+            // Show dashboard
+            dashboard.classList.add('show');
+            
+            // Display export info
+            displayExportInfo(data.export_info);
+            
+            // Display summary cards
+            displaySummaryCards(data.cumulative_totals, data.production_rates);
+            
+            // Initialize with all data
+            filteredData = data.basket_history.completed_baskets;
+            
+            // Create charts
+            createCharts(filteredData);
+            
+            // Display data table
+            displayDataTable(filteredData);
+        }
+        
+        function displayExportInfo(exportInfo) {
+            const infoDiv = document.getElementById('exportInfo');
+            infoDiv.innerHTML = `
+                <h4>📊 Export Information</h4>
+                <p><strong>Export Date:</strong> ${exportInfo.export_date_formatted}</p>
+                <p><strong>System Uptime:</strong> ${exportInfo.system_uptime_hours.toFixed(1)} hours</p>
+                <p><strong>Data Version:</strong> ${exportInfo.data_version}</p>
+            `;
+        }
+        
+        function displaySummaryCards(totals, rates) {
+            const summaryGrid = document.getElementById('summaryGrid');
+            summaryGrid.innerHTML = `
+                <div class="summary-card">
+                    <h3>Total Baskets</h3>
+                    <div class="value">${totals.total_baskets_completed}</div>
+                    <div class="subtitle">Completed</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Splits</h3>
+                    <div class="value">${totals.total_splits.toLocaleString()}</div>
+                    <div class="subtitle">${totals.total_cycles.toLocaleString()} cycles</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Success Rate</h3>
+                    <div class="value">${totals.overall_success_rate.toFixed(1)}%</div>
+                    <div class="subtitle">${totals.completed_cycles} / ${totals.total_cycles}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Fuel Efficiency</h3>
+                    <div class="value">${totals.total_fuel_consumed_gallons > 0 ? (totals.total_splits / totals.total_fuel_consumed_gallons).toFixed(1) : '0'}</div>
+                    <div class="subtitle">Splits per gallon</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Fuel Used</h3>
+                    <div class="value">${totals.total_fuel_consumed_gallons.toFixed(1)}</div>
+                    <div class="subtitle">Gallons</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Average per Basket</h3>
+                    <div class="value">${totals.average_fuel_per_basket.toFixed(2)}</div>
+                    <div class="subtitle">Gallons per basket</div>
+                </div>
+            `;
+        }
+        
+        function createCharts(data) {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            
+            // Trends Chart
+            createTrendsChart(data);
+            
+            // Fuel Efficiency Chart
+            createFuelChart(data);
+            
+            // Success Rate Distribution
+            createSuccessChart(data);
+            
+            // Active vs Idle Time Chart
+            createTimeChart(data);
+        }
+        
+        function createTrendsChart(data) {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            const labels = data.map((basket, index) => `Basket ${basket.basket_number}`);
+            
+            charts.trends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Splits per Basket',
+                        data: data.map(basket => basket.splits_completed),
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Success Rate (%)',
+                        data: data.map(basket => basket.success_rate),
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createFuelChart(data) {
+            const ctx = document.getElementById('fuelChart').getContext('2d');
+            const labels = data.map((basket, index) => `Basket ${basket.basket_number}`);
+            
+            charts.fuel = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Fuel Used (gallons)',
+                        data: data.map(basket => basket.fuel_consumed),
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: '#ffc107',
+                        borderWidth: 1
+                    }, {
+                        label: 'Splits per Gallon',
+                        data: data.map(basket => basket.splits_per_gallon),
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: '#dc3545',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createSuccessChart(data) {
+            const ctx = document.getElementById('successChart').getContext('2d');
+            
+            const successRanges = {
+                'Excellent (90-100%)': 0,
+                'Good (75-89%)': 0,
+                'Fair (60-74%)': 0,
+                'Poor (<60%)': 0
+            };
+            
+            data.forEach(basket => {
+                const rate = basket.success_rate;
+                if (rate >= 90) successRanges['Excellent (90-100%)']++;
+                else if (rate >= 75) successRanges['Good (75-89%)']++;
+                else if (rate >= 60) successRanges['Fair (60-74%)']++;
+                else successRanges['Poor (<60%)']++;
+            });
+            
+            charts.success = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(successRanges),
+                    datasets: [{
+                        data: Object.values(successRanges),
+                        backgroundColor: [
+                            '#28a745',
+                            '#17a2b8',
+                            '#ffc107',
+                            '#dc3545'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        function createTimeChart(data) {
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            
+            const avgActiveTime = data.reduce((sum, basket) => sum + basket.active_time_seconds, 0) / data.length / 3600;
+            const avgIdleTime = data.reduce((sum, basket) => sum + basket.idle_time_seconds, 0) / data.length / 3600;
+            
+            charts.time = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Active Time', 'Idle Time'],
+                    datasets: [{
+                        data: [avgActiveTime, avgIdleTime],
+                        backgroundColor: ['#28a745', '#6c757d']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed.toFixed(2) + ' hours';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function displayDataTable(data) {
+            const tableBody = document.getElementById('dataTableBody');
+            tableBody.innerHTML = '';
+            
+            data.forEach(basket => {
+                const row = document.createElement('tr');
+                
+                const successRate = basket.success_rate;
+                let successClass = 'poor';
+                if (successRate >= 90) successClass = 'good';
+                else if (successRate >= 75) successClass = 'fair';
+                
+                row.innerHTML = `
+                    <td class="number-cell">${basket.basket_number}</td>
+                    <td>${new Date(basket.start_time * 1000).toLocaleDateString()}</td>
+                    <td>${(basket.duration_seconds / 3600).toFixed(2)} hrs</td>
+                    <td>${(basket.active_time_seconds / 3600).toFixed(2)} hrs</td>
+                    <td>${(basket.idle_time_seconds / 3600).toFixed(2)} hrs</td>
+                    <td class="number-cell">${basket.idle_time_percentage.toFixed(1)}%</td>
+                    <td class="number-cell">${basket.splits_completed}</td>
+                    <td class="number-cell success-rate ${successClass}">${successRate.toFixed(1)}%</td>
+                    <td class="number-cell">${basket.fuel_consumed.toFixed(2)} gal</td>
+                    <td class="number-cell">${basket.splits_per_gallon.toFixed(1)}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function applyFilters() {
+            if (!loadedData) return;
+            
+            const dateFilter = document.getElementById('dateFilter').value;
+            const successFilter = parseFloat(document.getElementById('successFilter').value);
+            const splitsFilter = parseInt(document.getElementById('splitsFilter').value);
+            const sortFilter = document.getElementById('sortFilter').value;
+            
+            let filtered = [...loadedData.basket_history.completed_baskets];
+            
+            // Apply date filter
+            if (dateFilter !== 'all') {
+                const now = new Date();
+                const cutoffTime = new Date();
+                
+                switch (dateFilter) {
+                    case 'today':
+                        cutoffTime.setHours(0, 0, 0, 0);
+                        break;
+                    case 'week':
+                        cutoffTime.setDate(now.getDate() - 7);
+                        break;
+                    case 'month':
+                        cutoffTime.setDate(now.getDate() - 30);
+                        break;
+                }
+                
+                filtered = filtered.filter(basket => 
+                    new Date(basket.start_time * 1000) >= cutoffTime
+                );
+            }
+            
+            // Apply success rate filter
+            filtered = filtered.filter(basket => basket.success_rate >= successFilter);
+            
+            // Apply splits filter
+            filtered = filtered.filter(basket => basket.splits_completed >= splitsFilter);
+            
+            // Apply sorting
+            filtered.sort((a, b) => {
+                switch (sortFilter) {
+                    case 'date':
+                        return b.start_time - a.start_time;
+                    case 'splits':
+                        return b.splits_completed - a.splits_completed;
+                    case 'duration':
+                        return b.duration_seconds - a.duration_seconds;
+                    case 'fuel':
+                        return b.fuel_consumed - a.fuel_consumed;
+                    case 'efficiency':
+                        return b.splits_per_gallon - a.splits_per_gallon;
+                    default:
+                        return 0;
+                }
+            });
+            
+            filteredData = filtered;
+            
+            // Update charts and table
+            createCharts(filteredData);
+            displayDataTable(filteredData);
+        }
+    </script>
+</body>
+</html>

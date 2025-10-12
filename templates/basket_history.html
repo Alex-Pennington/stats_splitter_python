@@ -177,7 +177,9 @@
         
         <div class="nav-links">
             <a href="/">← Back to Dashboard</a>
+            <a href="/viewer" style="background-color: #17a2b8; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">📈 Data Viewer</a>
             <button class="refresh-button" onclick="loadBasketHistory()">🔄 Refresh Data</button>
+            <button class="refresh-button" onclick="exportBasketData()" style="background-color: #28a745;">📊 Export Data</button>
         </div>
         
         <div class="summary-cards" id="summary-cards">
@@ -200,6 +202,11 @@
                         <th>Start Time</th>
                         <th>Complete Time</th>
                         <th>Duration</th>
+                        <th>Operational</th>
+                        <th>Break Time</th>
+                        <th>Active Time</th>
+                        <th>Idle Time</th>
+                        <th>Idle %</th>
                         <th>Splits Complete</th>
                         <th>Cycles Attempted</th>
                         <th>Success Rate</th>
@@ -217,6 +224,11 @@
     </div>
 
     <script>
+        function formatDurationInHours(durationSeconds) {
+            const hours = durationSeconds / 3600;
+            return hours.toFixed(2) + ' hrs';
+        }
+        
         function loadBasketHistory() {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('error').style.display = 'none';
@@ -252,7 +264,7 @@
             tableBody.innerHTML = '';
             
             if (data.completed_baskets.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: #6c757d;">No completed baskets yet</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="14" style="text-align: center; color: #6c757d;">No completed baskets yet</td></tr>';
             } else {
                 data.completed_baskets.forEach(basket => {
                     const row = document.createElement('tr');
@@ -266,7 +278,12 @@
                         <td class="number-cell">${basket.basket_number}</td>
                         <td>${basket.start_time_formatted}</td>
                         <td>${basket.complete_time_formatted || 'N/A'}</td>
-                        <td>${basket.duration_formatted}</td>
+                        <td>${formatDurationInHours(basket.duration_seconds)}</td>
+                        <td>${formatDurationInHours(basket.operational_time_seconds || basket.duration_seconds)}</td>
+                        <td>${formatDurationInHours(basket.break_time_seconds || 0)}</td>
+                        <td>${formatDurationInHours(basket.active_time_seconds)}</td>
+                        <td>${formatDurationInHours(basket.idle_time_seconds)}</td>
+                        <td class="number-cell">${basket.idle_time_percentage.toFixed(1)}%</td>
                         <td class="number-cell">${basket.splits_completed}</td>
                         <td class="number-cell">${basket.cycles_attempted}</td>
                         <td class="number-cell success-rate ${successClass}">${successRate.toFixed(1)}%</td>
@@ -319,7 +336,11 @@
                         <h2>🔄 Current Basket (#${currentBasket.basket_number})</h2>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                             <div><strong>Started:</strong> ${currentBasket.start_time_formatted}</div>
-                            <div><strong>Duration:</strong> ${currentBasket.duration_formatted}</div>
+                            <div><strong>Duration:</strong> ${formatDurationInHours(currentBasket.duration_seconds)}</div>
+                            <div><strong>Operational:</strong> ${formatDurationInHours(currentBasket.operational_time_seconds || currentBasket.duration_seconds)}</div>
+                            <div><strong>Break Time:</strong> ${formatDurationInHours(currentBasket.break_time_seconds || 0)} (${(currentBasket.break_time_percentage || 0).toFixed(1)}%)</div>
+                            <div><strong>Active Time:</strong> ${formatDurationInHours(currentBasket.active_time_seconds)}</div>
+                            <div><strong>Idle Time:</strong> ${formatDurationInHours(currentBasket.idle_time_seconds)} (${currentBasket.idle_time_percentage.toFixed(1)}%)</div>
                             <div><strong>Splits:</strong> ${currentBasket.splits_completed} / ${currentBasket.cycles_attempted} attempts</div>
                             <div><strong>Success Rate:</strong> <span class="success-rate ${successClass}">${successRate.toFixed(1)}%</span></div>
                             <div><strong>Start Fuel:</strong> ${currentBasket.start_fuel_level !== null ? currentBasket.start_fuel_level.toFixed(2) + ' gal' : 'N/A'}</div>
@@ -332,6 +353,28 @@
             } else {
                 currentBasketSection.innerHTML = '';
             }
+        }
+        
+        function exportBasketData() {
+            // Create a temporary link element to trigger download
+            const link = document.createElement('a');
+            link.href = '/api/baskets/export';
+            link.download = ''; // Let the server set the filename
+            
+            // Trigger the download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show a brief confirmation message
+            const originalText = event.target.textContent;
+            event.target.textContent = '✅ Downloading...';
+            event.target.disabled = true;
+            
+            setTimeout(() => {
+                event.target.textContent = originalText;
+                event.target.disabled = false;
+            }, 2000);
         }
         
         // Auto-refresh every 30 seconds

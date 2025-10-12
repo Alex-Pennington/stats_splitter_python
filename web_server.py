@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 import logging
 
 logger = logging.getLogger(__name__)
@@ -53,10 +53,59 @@ def create_app(production_stats):
             logger.error(f"Error completing basket: {e}")
             return jsonify({'error': str(e)}), 500
     
+    @app.route('/api/production/start-break', methods=['POST'])
+    def start_break():
+        """Start an operator break"""
+        try:
+            if production_stats.current_basket:
+                production_stats.current_basket.start_break()
+                logger.info("Operator break started")
+                return jsonify({'message': 'Break started successfully'})
+            else:
+                return jsonify({'error': 'No active basket to start break for'}), 400
+        except Exception as e:
+            logger.error(f"Error starting break: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/production/end-break', methods=['POST'])
+    def end_break():
+        """End an operator break"""
+        try:
+            if production_stats.current_basket:
+                production_stats.current_basket.end_break()
+                logger.info("Operator break ended")
+                return jsonify({'message': 'Break ended successfully'})
+            else:
+                return jsonify({'error': 'No active basket to end break for'}), 400
+        except Exception as e:
+            logger.error(f"Error ending break: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/production/break-status', methods=['GET'])
+    def break_status():
+        """Get current break status"""
+        try:
+            if production_stats.current_basket:
+                return jsonify({
+                    'on_break': production_stats.current_basket.on_break,
+                    'break_duration': production_stats.current_basket.get_current_break_time(),
+                    'break_start_time': production_stats.current_basket.break_start_time
+                })
+            else:
+                return jsonify({'on_break': False, 'break_duration': 0})
+        except Exception as e:
+            logger.error(f"Error getting break status: {e}")
+            return jsonify({'error': str(e)}), 500
+    
     @app.route('/baskets')
     def basket_history():
         """Show detailed basket statistics page"""
         return render_template('basket_history.html')
+    
+    @app.route('/viewer')
+    def data_viewer():
+        """Show data viewer page for exported files"""
+        return send_from_directory('.', 'data_viewer.html')
     
     @app.route('/api/baskets/history')
     def get_basket_history():
@@ -66,6 +115,66 @@ def create_app(production_stats):
             return jsonify(baskets)
         except Exception as e:
             logger.error(f"Error getting basket history: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/baskets/export')
+    def export_basket_data():
+        """Export comprehensive basket history and totals as JSON"""
+        try:
+            from flask import make_response
+            import json
+            from datetime import datetime
+            
+            # Get basket history data
+            basket_data = production_stats.get_basket_history()
+            
+            # Get production summary for cumulative totals
+            production_summary = production_stats.get_production_summary()
+            
+            # Create comprehensive export data
+            export_data = {
+                'export_info': {
+                    'export_timestamp': datetime.now().isoformat(),
+                    'export_date_formatted': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'system_uptime_hours': production_summary.get('uptime_seconds', 0) / 3600,
+                    'data_version': '1.0'
+                },
+                'cumulative_totals': {
+                    'total_baskets_completed': basket_data.get('total_baskets_completed', 0),
+                    'total_splits': production_summary.get('total_splits', 0),
+                    'total_cycles': production_summary.get('total_cycles', 0),
+                    'total_fuel_consumed_gallons': basket_data.get('total_fuel_consumed', 0),
+                    'average_fuel_per_basket': basket_data.get('average_fuel_per_basket', 0),
+                    'overall_success_rate': (production_summary.get('total_splits', 0) / production_summary.get('total_cycles', 1) * 100) if production_summary.get('total_cycles', 0) > 0 else 0,
+                    'system_uptime_seconds': production_summary.get('uptime_seconds', 0),
+                    'completed_cycles': production_summary.get('completed_cycles', 0),
+                    'aborted_cycles': production_summary.get('aborted_cycles', 0)
+                },
+                'production_rates': production_summary.get('production_rates', {}),
+                'basket_history': basket_data,
+                'current_basket': basket_data.get('current_basket'),
+                'system_status': {
+                    'current_stage': production_summary.get('current_stage', 'unknown'),
+                    'system_status': production_summary.get('system_status', 'unknown'),
+                    'last_activity': production_summary.get('idle_time_seconds', 0)
+                }
+            }
+            
+            # Create filename with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'firewood_splitter_data_{timestamp}.json'
+            
+            # Create response with JSON data
+            response_data = json.dumps(export_data, indent=2, default=str)
+            response = make_response(response_data)
+            response.headers['Content-Type'] = 'application/json'
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            
+            logger.info(f"Exported basket data: {len(basket_data.get('completed_baskets', []))} baskets, {export_data['cumulative_totals']['total_splits']} splits")
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error exporting basket data: {e}")
             return jsonify({'error': str(e)}), 500
     
     @app.route('/api/production/reset', methods=['POST'])
