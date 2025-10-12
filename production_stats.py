@@ -499,6 +499,14 @@ class ProductionStatsEngine:
                     # Set current cycle if not complete
                     if not cycle.is_complete:
                         self.current_basket.current_cycle = cycle
+                
+                # Check if current basket was already completed and should be moved to completed baskets
+                if self.current_basket.complete_time is not None:
+                    logger.info(f"Moving completed current basket to completed baskets list")
+                    self.completed_baskets.append(self.current_basket)
+                    self.current_basket = None
+                    # Start a new basket for current operations
+                    self._start_new_basket()
             
             logger.info(f"Production data loaded: {self.total_splits} splits, {self.total_baskets} baskets, {self.total_cycles} cycles")
             
@@ -695,6 +703,7 @@ class ProductionStatsEngine:
         if timestamp is None:
             timestamp = time.time()
             
+        logger.info(f"Processing fuel level: {fuel_level} gallons")  # Added for debugging
         with self.lock:
             self.fuel_level_readings.append({
                 'timestamp': timestamp,

@@ -215,7 +215,7 @@ class WindowsMQTTClient:
         """Handle fuel level readings from monitor/fuel/gallons"""
         try:
             fuel_level = float(payload)
-            logger.debug(f"Fuel level: {fuel_level} gallons")
+            logger.info(f"Fuel level: {fuel_level} gallons")  # Temporarily changed to INFO for debugging
             self.production_stats.handle_fuel_level(fuel_level)
         except ValueError:
             logger.warning(f"Invalid fuel level reading: {payload}")

@@ -1,690 +1,523 @@
 {
-  "start_time": 1760281719.0149305,
-  "total_cycles": 30,
-  "total_splits": 29,
-  "total_baskets": 0,
-  "last_activity_time": 1760282453.1919808,
-  "completed_baskets": [],
-  "current_basket": {
-    "start_time": 1760281719.030559,
-    "complete_time": null,
-    "exchange_time": null,
-    "start_fuel_level": 4.54,
-    "end_fuel_level": null,
-    "fuel_consumed": 0.0,
-    "cycles": [
-      {
-        "start_time": 1760281719.8901386,
-        "extend_start": 1760281719.8901386,
-        "extend_complete": 1760281721.8598425,
-        "retract_start": 1760281721.8598425,
-        "retract_complete": 1760281727.1739566,
-        "complete_time": 1760281727.1739566,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281752.5530949,
-        "extend_start": 1760281752.5530949,
-        "extend_complete": 1760281758.819069,
-        "retract_start": 1760281758.819069,
-        "retract_complete": 1760281764.1520994,
-        "complete_time": 1760281764.1520994,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281770.937764,
-        "extend_start": 1760281770.937764,
-        "extend_complete": 1760281777.0638447,
-        "retract_start": 1760281777.0638447,
-        "retract_complete": 1760281782.312462,
-        "complete_time": 1760281782.312462,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281788.4435267,
-        "extend_start": 1760281788.4435267,
-        "extend_complete": 1760281794.4766655,
-        "retract_start": 1760281794.4766655,
-        "retract_complete": 1760281799.7086353,
-        "complete_time": 1760281799.7086353,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281839.7116938,
-        "extend_start": 1760281839.7116938,
-        "extend_complete": 1760281845.9189804,
-        "retract_start": 1760281845.9189804,
-        "retract_complete": 1760281851.6363525,
-        "complete_time": 1760281851.6363525,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281854.6313164,
-        "extend_start": 1760281854.6313164,
-        "extend_complete": 1760281860.370661,
-        "retract_start": 1760281860.370661,
-        "retract_complete": 1760281865.6744225,
-        "complete_time": 1760281865.6744225,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281878.4087157,
-        "extend_start": 1760281878.4087157,
-        "extend_complete": 1760281884.4617984,
-        "retract_start": 1760281884.4617984,
-        "retract_complete": 1760281889.7295334,
-        "complete_time": 1760281889.7295334,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281893.8896885,
-        "extend_start": 1760281893.8896885,
-        "extend_complete": 1760281899.8924344,
-        "retract_start": 1760281899.8924344,
-        "retract_complete": 1760281905.1761198,
-        "complete_time": 1760281905.1761198,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281911.3133934,
-        "extend_start": 1760281911.3133934,
-        "extend_complete": 1760281917.8606691,
-        "retract_start": 1760281917.8606691,
-        "retract_complete": 1760281923.2227445,
-        "complete_time": 1760281923.2227445,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281928.0381968,
-        "extend_start": 1760281928.0381968,
-        "extend_complete": 1760281934.1289718,
-        "retract_start": 1760281934.1289718,
-        "retract_complete": 1760281939.442012,
-        "complete_time": 1760281939.442012,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281948.8242595,
-        "extend_start": 1760281948.8242595,
-        "extend_complete": 1760281954.8582132,
-        "retract_start": 1760281954.8582132,
-        "retract_complete": 1760281960.1747077,
-        "complete_time": 1760281960.1747077,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281968.5973737,
-        "extend_start": 1760281968.5973737,
-        "extend_complete": 1760281974.7043977,
-        "retract_start": 1760281974.7043977,
-        "retract_complete": 1760281980.0249953,
-        "complete_time": 1760281980.0249953,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282048.4254785,
-        "extend_start": 1760282048.4254785,
-        "extend_complete": 1760282054.6678584,
-        "retract_start": 1760282054.6678584,
-        "retract_complete": 1760282059.9998596,
-        "complete_time": 1760282059.9998596,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282064.857306,
-        "extend_start": 1760282064.857306,
-        "extend_complete": 1760282071.0817218,
-        "retract_start": 1760282071.0817218,
-        "retract_complete": 1760282076.3960052,
-        "complete_time": 1760282076.3960052,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282078.7925978,
-        "extend_start": 1760282078.7925978,
-        "extend_complete": 1760282084.8950756,
-        "retract_start": 1760282084.8950756,
-        "retract_complete": 1760282090.1694443,
-        "complete_time": 1760282090.1694443,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282099.5711954,
-        "extend_start": 1760282099.5711954,
-        "extend_complete": 1760282105.6337562,
-        "retract_start": 1760282105.6337562,
-        "retract_complete": 1760282110.8598573,
-        "complete_time": 1760282110.8598573,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282115.5196898,
-        "extend_start": 1760282115.5196898,
-        "extend_complete": 1760282121.6888676,
-        "retract_start": 1760282121.6888676,
-        "retract_complete": 1760282126.9381416,
-        "complete_time": 1760282126.9381416,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282141.099116,
-        "extend_start": 1760282141.099116,
-        "extend_complete": 1760282147.2222373,
-        "retract_start": 1760282147.2222373,
-        "retract_complete": 1760282152.5155425,
-        "complete_time": 1760282152.5155425,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282166.7264616,
-        "extend_start": 1760282166.7264616,
-        "extend_complete": 1760282172.8039875,
-        "retract_start": 1760282172.8039875,
-        "retract_complete": null,
-        "complete_time": 1760282178.2301886,
-        "aborted": true,
-        "abort_reason": "abort"
-      },
-      {
-        "start_time": 1760282180.3024302,
-        "extend_start": 1760282180.3024302,
-        "extend_complete": 1760282186.2253444,
-        "retract_start": 1760282186.2253444,
-        "retract_complete": 1760282191.4761305,
-        "complete_time": 1760282191.4761305,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282208.1398036,
-        "extend_start": 1760282208.1398036,
-        "extend_complete": 1760282214.6850405,
-        "retract_start": 1760282214.6850405,
-        "retract_complete": 1760282220.0132926,
-        "complete_time": 1760282220.0132926,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282222.36236,
-        "extend_start": 1760282222.36236,
-        "extend_complete": 1760282228.4145234,
-        "retract_start": 1760282228.4145234,
-        "retract_complete": 1760282233.8144069,
-        "complete_time": 1760282233.8144069,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282250.7402625,
- : 1760281381.2876513,
-        "extend_complete": 1760281387.4038389,
-        "retract_start": 1760281387.4038389,
-        "retract_complete": 1760281392.6775637,
-        "complete_time": 1760281392.6775637,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281404.6911495,
-        "extend_start": 1760281404.6911495,
-        "extend_complete": 1760281410.6987505,
-        "retract_start": 1760281410.6987505,
-        "retract_complete": 1760281416.002368,
-        "complete_time": 1760281416.002368,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281426.4792469,
-        "extend_start": 1760281426.4792469,
-        "extend_complete": 1760281432.5431104,
-        "retract_start": 1760281432.5431104,
-        "retract_complete": 1760281437.841513,
-        "complete_time": 1760281437.841513,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281439.8947227,
-        "extend_start": 1760281439.8947227,
-        "extend_complete": 1760281445.925567,
-        "retract_start": 1760281445.925567,
-        "retract_complete": 1760281451.1830812,
-        "complete_time": 1760281451.1830812,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281464.9633224,
-        "extend_start": 1760281464.9633224,
-        "extend_complete": 1760281471.1630151,
-        "retract_start": 1760281471.1630151,
-        "retract_complete": 1760281476.4931023,
-        "complete_time": 1760281476.4931023,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281486.6266997,
-        "extend_start": 1760281486.6266997,
-        "extend_complete": 1760281492.6837828,
-        "retract_start": 1760281492.6837828,
-        "retract_complete": 1760281498.0490968,
-        "complete_time": 1760281498.0490968,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281506.0883212,
-        "extend_start": 1760281506.0883212,
-        "extend_complete": 1760281512.1699219,
-        "retract_start": 1760281512.1699219,
-        "retract_complete": 1760281517.4089913,
-        "complete_time": 1760281517.4089913,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281526.8514144,
-        "extend_start": 1760281526.8514144,
-        "extend_complete": 1760281532.9576387,
-        "retract_start": 1760281532.9576387,
-        "retract_complete": 1760281538.2171164,
-        "complete_time": 1760281538.2171164,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281545.9543564,
-        "extend_start": 1760281545.9543564,
-        "extend_complete": 1760281552.0447302,
-        "retract_start": 1760281552.0447302,
-        "retract_complete": 1760281557.2304878,
-        "complete_time": 1760281557.2304878,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281591.432067,
-        "extend_start": 1760281591.432067,
-        "extend_complete": 1760281597.4347894,
-        "retract_start": 1760281597.4347894,
-        "retract_complete": 1760281602.705156,
-        "complete_time": 1760281602.705156,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281623.0303195,
-        "extend_start": 1760281623.0303195,
-        "extend_complete": 1760281629.1630936,
-        "retract_start": 1760281629.1630936,
-        "retract_complete": 1760281635.088634,
-        "complete_time": 1760281635.088634,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281641.5320125,
-        "extend_start": 1760281641.5320125,
-        "extend_complete": 1760281647.6135726,
-        "retract_start": 1760281647.6135726,
-        "retract_complete": 1760281652.829294,
-        "complete_time": 1760281652.829294,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281656.1604633,
-        "extend_start": 1760281656.1604633,
-        "extend_complete": 1760281662.2154963,
-        "retract_start": 1760281662.2154963,
-        "retract_complete": 1760281667.443957,
-        "complete_time": 1760281667.443957,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281673.613576,
-        "extend_start": 1760281673.613576,
-        "extend_complete": 1760281680.1963701,
-        "retract_start": 1760281680.1963701,
-        "retract_complete": 1760281685.4347818,
-        "complete_time": 1760281685.4347818,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281699.0059328,
-        "extend_start": 1760281699.0059328,
-        "extend_complete": 1760281705.6389608,
-        "retract_start": 1760281705.6389608,
-        "retract_complete": 1760281710.94347,
-        "complete_time": 1760281710.94347,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281715.6912699,
-        "extend_start": 1760281715.6912699,
-        "extend_complete": 1760281721.8598425,
-        "retract_start": 1760281721.8598425,
-        "retract_complete": 1760281727.1739566,
-        "complete_time": 1760281727.1739566,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281752.5530949,
-        "extend_start": 1760281752.5530949,
-        "extend_complete": 1760281758.8180704,
-        "retract_start": 1760281758.8180704,
-        "retract_complete": 1760281764.1520994,
-        "complete_time": 1760281764.1520994,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281770.937764,
-        "extend_start": 1760281770.937764,
-        "extend_complete": 1760281777.0638447,
-        "retract_start": 1760281777.0638447,
-        "retract_complete": 1760281782.312462,
-        "complete_time": 1760281782.312462,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281788.4435267,
-        "extend_start": 1760281788.4435267,
-        "extend_complete": 1760281794.4766655,
-        "retract_start": 1760281794.4766655,
-        "retract_complete": 1760281799.7086353,
-        "complete_time": 1760281799.7086353,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281839.7106886,
-        "extend_start": 1760281839.7106886,
-        "extend_complete": 1760281845.9189804,
-        "retract_start": 1760281845.9189804,
-        "retract_complete": 1760281851.6324434,
-        "complete_time": 1760281851.6324434,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281854.6313164,
-        "extend_start": 1760281854.6313164,
-        "extend_complete": 1760281860.370661,
-        "retract_start": 1760281860.370661,
-        "retract_complete": 1760281865.6744225,
-        "complete_time": 1760281865.6744225,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281878.4087157,
-        "extend_start": 1760281878.4087157,
-        "extend_complete": 1760281884.4617984,
-        "retract_start": 1760281884.4617984,
-        "retract_complete": 1760281889.7295334,
-        "complete_time": 1760281889.7295334,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281893.8896885,
-        "extend_start": 1760281893.8896885,
-        "extend_complete": 1760281899.8924344,
-        "retract_start": 1760281899.8924344,
-        "retract_complete": 1760281905.1761198,
-        "complete_time": 1760281905.1761198,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281911.3133934,
-        "extend_start": 1760281911.3133934,
-        "extend_complete": 1760281917.8596628,
-        "retract_start": 1760281917.8596628,
-        "retract_complete": 1760281923.2227445,
-        "complete_time": 1760281923.2227445,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281928.0381968,
-        "extend_start": 1760281928.0381968,
-        "extend_complete": 1760281934.1289718,
-        "retract_start": 1760281934.1289718,
-        "retract_complete": 1760281939.442012,
-        "complete_time": 1760281939.442012,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281948.8242595,
-        "extend_start": 1760281948.8242595,
-        "extend_complete": 1760281954.8582132,
-        "retract_start": 1760281954.8582132,
-        "retract_complete": 1760281960.1747077,
-        "complete_time": 1760281960.1747077,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760281968.5973737,
-        "extend_start": 1760281968.5973737,
-        "extend_complete": 1760281974.7043977,
-        "retract_start": 1760281974.7043977,
-        "retract_complete": 1760281980.0249953,
-        "complete_time": 1760281980.0249953,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282048.4254785,
-        "extend_start": 1760282048.4254785,
-        "extend_complete": 1760282054.6688569,
-        "retract_start": 1760282054.6688569,
-        "retract_complete": 1760282059.9998596,
-        "complete_time": 1760282059.9998596,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282064.857306,
-        "extend_start": 1760282064.857306,
-        "extend_complete": 1760282071.0817218,
-        "retract_start": 1760282071.0817218,
-        "retract_complete": 1760282076.3960052,
-        "complete_time": 1760282076.3960052,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282078.7944896,
-        "extend_start": 1760282078.7944896,
-        "extend_complete": 1760282084.8950756,
-        "retract_start": 1760282084.8950756,
-        "retract_complete": 1760282090.1694443,
-        "complete_time": 1760282090.1694443,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282099.5711954,
-        "extend_start": 1760282099.5711954,
-        "extend_complete": 1760282105.6337562,
-        "retract_start": 1760282105.6337562,
-        "retract_complete": 1760282110.8598573,
-        "complete_time": 1760282110.8598573,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282115.5196898,
-        "extend_start": 1760282115.5196898,
-        "extend_complete": 1760282121.6888676,
-        "retract_start": 1760282121.6888676,
-        "retract_complete": 1760282126.9381416,
-        "complete_time": 1760282126.9381416,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282141.099116,
-        "extend_start": 1760282141.099116,
-        "extend_complete": 1760282147.2222373,
-        "retract_start": 1760282147.2222373,
-        "retract_complete": 1760282152.5155425,
-        "complete_time": 1760282152.5155425,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282166.7264616,
-        "extend_start": 1760282166.7264616,
-        "extend_complete": 1760282172.8039875,
-        "retract_start": 1760282172.8039875,
-        "retract_complete": null,
-        "complete_time": 1760282178.229201,
-        "aborted": true,
-        "abort_reason": "abort"
-      },
-      {
-        "start_time": 1760282180.3024302,
-        "extend_start": 1760282180.3024302,
-        "extend_complete": 1760282186.2253444,
-        "retract_start": 1760282186.2253444,
-        "retract_complete": 1760282191.4761305,
-        "complete_time": 1760282191.4761305,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282208.1398036,
-        "extend_start": 1760282208.1398036,
-        "extend_complete": 1760282214.6850405,
-        "retract_start": 1760282214.6850405,
-        "retract_complete": 1760282220.0132926,
-        "complete_time": 1760282220.0132926,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282222.36236,
-        "extend_start": 1760282222.36236,
-        "extend_complete": 1760282228.4145234,
-        "retract_start": 1760282228.4145234,
-        "retract_complete": 1760282233.8144069,
-        "complete_time": 1760282233.8144069,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282250.7402625,
-        "extend_start": 1760282250.7402625,
-        "extend_complete": 1760282256.790719,
-        "retract_start": 1760282256.790719,
-        "retract_complete": 1760282262.1128151,
-        "complete_time": 1760282262.1128151,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282271.8677123,
-        "extend_start": 1760282271.8677123,
-        "extend_complete": 1760282277.9568756,
-        "retract_start": 1760282277.9568756,
-        "retract_complete": 1760282283.2674677,
-        "complete_time": 1760282283.2674677,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282300.9492424,
-        "extend_start": 1760282300.9492424,
-        "extend_complete": 1760282307.1161125,
-        "retract_start": 1760282307.1161125,
-        "retract_complete": 1760282312.4083502,
-        "complete_time": 1760282312.4083502,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282326.8495064,
-        "extend_start": 1760282326.8495064,
-        "extend_complete": 1760282332.9448957,
-        "retract_start": 1760282332.9448957,
-        "retract_complete": 1760282338.2362313,
-        "complete_time": 1760282338.2362313,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282342.5353816,
-        "extend_start": 1760282342.5353816,
-        "extend_complete": 1760282348.6313603,
-        "retract_start": 1760282348.6313603,
-        "retract_complete": 1760282353.8738987,
-        "complete_time": 1760282353.8738987,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282359.1968935,
-        "extend_start": 1760282359.1968935,
-        "extend_complete": 1760282365.7480705,
-        "retract_start": 1760282365.7480705,
-        "retract_complete": 1760282371.0784266,
-        "complete_time": 1760282371.0784266,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282374.6972802,
-        "extend_start": 1760282374.6972802,
-        "extend_complete": 1760282381.3729799,
-        "retract_start": 1760282381.3729799,
-        "retract_complete": 1760282386.5873578,
-        "complete_time": 1760282386.5873578,
-        "aborted": false,
-        "abort_reason": null
-      },
-      {
-        "start_time": 1760282441.7121584,
-        "extend_start": 1760282441.7121584,
-        "extend_complete": 1760282447.7954073,
-        "retract_start": 1760282447.7954073,
-        "retract_complete": 1760282453.1919808,
-        "complete_time": 1760282453.1919808,
-        "aborted": false,
-        "abort_reason": null
-      }
-    ]
-  },
+  "start_time": 1760280748.2111413,
+  "total_cycles": 400,
+  "total_splits": 362,
+  "total_baskets": 4,
+  "last_activity_time": 1760293660.9197736,
+  "completed_baskets": [
+    {
+      "start_time": 1760280748.2111413,
+      "complete_time": 1760282862.0959566,
+      "exchange_time": 1760282862.0959566,
+      "start_fuel_level": 4.63,
+      "end_fuel_level": 4.3,
+      "fuel_consumed": 0.33,
+      "idle_time": 0.0,
+      "break_time": 0.0,
+      "on_break": false,
+      "break_start_time": null,
+      "last_activity_time": null,
+      "is_currently_active": false,
+      "cycles": []
+    },
+    {
+      "start_time": 1760282862.1033418,
+      "complete_time": 1760286957.5646431,
+      "exchange_time": 1760286957.5646431,
+      "start_fuel_level": 4.3,
+      "end_fuel_level": 3.41,
+      "fuel_consumed": 0.89,
+      "idle_time": 0.0,
+      "break_time": 0.0,
+      "on_break": false,
+      "break_start_time": null,
+      "last_activity_time": null,
+      "is_currently_active": false,
+      "cycles": []
+    },
+    {
+      "start_time": 1760286957.5866432,
+      "complete_time": 1760289853.3369372,
+      "exchange_time": 1760289853.3369372,
+      "start_fuel_level": 3.41,
+      "end_fuel_level": 2.77,
+      "fuel_consumed": 0.64,
+      "idle_time": 1828.37,
+      "break_time": 0.0,
+      "on_break": false,
+      "break_start_time": null,
+      "last_activity_time": 1760290915.4088252,
+      "is_currently_active": false,
+      "cycles": []
+    },
+    {
+      "start_time": 1760291110.5755997,
+      "complete_time": 1760293660.9197736,
+      "exchange_time": 1760293660.9197736,
+      "start_fuel_level": 2.5,
+      "end_fuel_level": 1.94,
+      "fuel_consumed": 0.56,
+      "idle_time": 271.72,
+      "break_time": 0.0,
+      "on_break": false,
+      "break_start_time": null,
+      "last_activity_time": 1760293660.1859927,
+      "is_currently_active": true,
+      "cycles": [
+        {
+          "start_time": 1760292049.2273138,
+          "extend_start": 1760292049.2273138,
+          "extend_complete": 1760292060.1522744,
+          "retract_start": 1760292060.1522744,
+          "retract_complete": 1760292065.312618,
+          "complete_time": 1760292065.312618,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292077.2754765,
+          "extend_start": 1760292077.2754765,
+          "extend_complete": 1760292085.0773194,
+          "retract_start": 1760292085.0773194,
+          "retract_complete": 1760292090.4351501,
+          "complete_time": 1760292090.4351501,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292096.6862304,
+          "extend_start": 1760292096.6862304,
+          "extend_complete": 1760292102.7844958,
+          "retract_start": 1760292102.7844958,
+          "retract_complete": 1760292108.238937,
+          "complete_time": 1760292108.238937,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292184.3548703,
+          "extend_start": 1760292184.3548703,
+          "extend_complete": 1760292190.8995938,
+          "retract_start": 1760292190.8995938,
+          "retract_complete": 1760292196.2717452,
+          "complete_time": 1760292196.2717452,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292221.870346,
+          "extend_start": 1760292221.870346,
+          "extend_complete": 1760292227.999138,
+          "retract_start": 1760292227.999138,
+          "retract_complete": 1760292233.240644,
+          "complete_time": 1760292233.240644,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292235.5153584,
+          "extend_start": 1760292235.5153584,
+          "extend_complete": 1760292241.6662178,
+          "retract_start": 1760292241.6662178,
+          "retract_complete": 1760292246.8864722,
+          "complete_time": 1760292246.8864722,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292309.4941988,
+          "extend_start": 1760292309.4941988,
+          "extend_complete": 1760292316.3060532,
+          "retract_start": 1760292316.3060532,
+          "retract_complete": null,
+          "complete_time": 1760292316.7756705,
+          "aborted": true,
+          "abort_reason": "abort"
+        },
+        {
+          "start_time": 1760292349.8440955,
+          "extend_start": 1760292349.8440955,
+          "extend_complete": 1760292354.0107014,
+          "retract_start": 1760292354.0107014,
+          "retract_complete": 1760292359.2468905,
+          "complete_time": 1760292359.2468905,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292366.9140341,
+          "extend_start": 1760292366.9140341,
+          "extend_complete": 1760292372.9521177,
+          "retract_start": 1760292372.9521177,
+          "retract_complete": 1760292378.2604055,
+          "complete_time": 1760292378.2604055,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292384.643164,
+          "extend_start": 1760292384.643164,
+          "extend_complete": null,
+          "retract_start": null,
+          "retract_complete": null,
+          "complete_time": 1760292389.561181,
+          "aborted": true,
+          "abort_reason": "abort"
+        },
+        {
+          "start_time": 1760292399.658716,
+          "extend_start": 1760292399.658716,
+          "extend_complete": null,
+          "retract_start": null,
+          "retract_complete": null,
+          "complete_time": 1760292403.4441495,
+          "aborted": true,
+          "abort_reason": "abort"
+        },
+        {
+          "start_time": 1760292418.0386455,
+          "extend_start": 1760292418.0386455,
+          "extend_complete": 1760292424.228819,
+          "retract_start": 1760292424.228819,
+          "retract_complete": 1760292429.5392509,
+          "complete_time": 1760292429.5392509,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292453.276482,
+          "extend_start": 1760292453.276482,
+          "extend_complete": 1760292459.2900465,
+          "retract_start": 1760292459.2900465,
+          "retract_complete": 1760292464.7376704,
+          "complete_time": 1760292464.7376704,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292473.78986,
+          "extend_start": 1760292473.78986,
+          "extend_complete": 1760292480.1768188,
+          "retract_start": 1760292480.1768188,
+          "retract_complete": 1760292485.4816177,
+          "complete_time": 1760292485.4816177,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292489.9784772,
+          "extend_start": 1760292489.9784772,
+          "extend_complete": 1760292496.073429,
+          "retract_start": 1760292496.073429,
+          "retract_complete": 1760292501.4021766,
+          "complete_time": 1760292501.4021766,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292513.7968547,
+          "extend_start": 1760292513.7968547,
+          "extend_complete": 1760292520.005136,
+          "retract_start": 1760292520.005136,
+          "retract_complete": 1760292525.2729468,
+          "complete_time": 1760292525.2729468,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292527.1438932,
+          "extend_start": 1760292527.1438932,
+          "extend_complete": 1760292533.7421782,
+          "retract_start": 1760292533.7421782,
+          "retract_complete": 1760292539.12106,
+          "complete_time": 1760292539.12106,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292544.8842375,
+          "extend_start": 1760292544.8842375,
+          "extend_complete": 1760292550.9293604,
+          "retract_start": 1760292550.9293604,
+          "retract_complete": 1760292556.2066727,
+          "complete_time": 1760292556.2066727,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292566.6647823,
+          "extend_start": 1760292566.6647823,
+          "extend_complete": 1760292573.281747,
+          "retract_start": 1760292573.281747,
+          "retract_complete": 1760292578.4963794,
+          "complete_time": 1760292578.4963794,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292619.9458654,
+          "extend_start": 1760292619.9458654,
+          "extend_complete": 1760292626.2687104,
+          "retract_start": 1760292626.2687104,
+          "retract_complete": 1760292631.5391858,
+          "complete_time": 1760292631.5391858,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292675.6536994,
+          "extend_start": 1760292675.6536994,
+          "extend_complete": 1760292682.5161247,
+          "retract_start": 1760292682.5161247,
+          "retract_complete": 1760292686.5851617,
+          "complete_time": 1760292686.5851617,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292725.9599378,
+          "extend_start": 1760292725.9599378,
+          "extend_complete": 1760292732.4010825,
+          "retract_start": 1760292732.4010825,
+          "retract_complete": 1760292737.7091217,
+          "complete_time": 1760292737.7091217,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292757.8567753,
+          "extend_start": 1760292757.8567753,
+          "extend_complete": 1760292764.5334935,
+          "retract_start": 1760292764.5334935,
+          "retract_complete": 1760292769.840309,
+          "complete_time": 1760292769.840309,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292771.2646992,
+          "extend_start": 1760292771.2646992,
+          "extend_complete": 1760292777.3821795,
+          "retract_start": 1760292777.3821795,
+          "retract_complete": 1760292782.6342204,
+          "complete_time": 1760292782.6342204,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292891.5248559,
+          "extend_start": 1760292891.5248559,
+          "extend_complete": 1760292898.442123,
+          "retract_start": 1760292898.442123,
+          "retract_complete": 1760292903.673817,
+          "complete_time": 1760292903.673817,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292915.8068225,
+          "extend_start": 1760292915.8068225,
+          "extend_complete": 1760292922.2597773,
+          "retract_start": 1760292922.2597773,
+          "retract_complete": 1760292927.4945455,
+          "complete_time": 1760292927.4945455,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292953.9586313,
+          "extend_start": 1760292953.9586313,
+          "extend_complete": 1760292960.4648666,
+          "retract_start": 1760292960.4648666,
+          "retract_complete": 1760292965.7239115,
+          "complete_time": 1760292965.7239115,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760292979.3351293,
+          "extend_start": 1760292979.3351293,
+          "extend_complete": 1760292985.0744567,
+          "retract_start": 1760292985.0744567,
+          "retract_complete": 1760292990.811939,
+          "complete_time": 1760292990.811939,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293022.452063,
+          "extend_start": 1760293022.452063,
+          "extend_complete": 1760293028.0632424,
+          "retract_start": 1760293028.0632424,
+          "retract_complete": 1760293033.4285233,
+          "complete_time": 1760293033.4285233,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293047.1894572,
+          "extend_start": 1760293047.1894572,
+          "extend_complete": 1760293053.537205,
+          "retract_start": 1760293053.537205,
+          "retract_complete": 1760293059.2753496,
+          "complete_time": 1760293059.2753496,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293077.7947633,
+          "extend_start": 1760293077.7947633,
+          "extend_complete": 1760293083.9504733,
+          "retract_start": 1760293083.9504733,
+          "retract_complete": 1760293089.1931741,
+          "complete_time": 1760293089.1931741,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293106.9738586,
+          "extend_start": 1760293106.9738586,
+          "extend_complete": 1760293113.9309194,
+          "retract_start": 1760293113.9309194,
+          "retract_complete": null,
+          "complete_time": 1760293119.0359232,
+          "aborted": true,
+          "abort_reason": "abort"
+        },
+        {
+          "start_time": 1760293120.2885487,
+          "extend_start": 1760293120.2885487,
+          "extend_complete": 1760293127.1965744,
+          "retract_start": 1760293127.1965744,
+          "retract_complete": 1760293132.919797,
+          "complete_time": 1760293132.919797,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293137.2164178,
+          "extend_start": 1760293137.2164178,
+          "extend_complete": 1760293143.293248,
+          "retract_start": 1760293143.293248,
+          "retract_complete": 1760293148.5358613,
+          "complete_time": 1760293148.5358613,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293151.5228288,
+          "extend_start": 1760293151.5228288,
+          "extend_complete": 1760293158.1471815,
+          "retract_start": 1760293158.1471815,
+          "retract_complete": 1760293163.4677665,
+          "complete_time": 1760293163.4677665,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293205.542416,
+          "extend_start": 1760293205.542416,
+          "extend_complete": 1760293212.849085,
+          "retract_start": 1760293212.849085,
+          "retract_complete": 1760293218.1561072,
+          "complete_time": 1760293218.1561072,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293220.2271628,
+          "extend_start": 1760293220.2271628,
+          "extend_complete": 1760293226.308802,
+          "retract_start": 1760293226.308802,
+          "retract_complete": 1760293231.7373168,
+          "complete_time": 1760293231.7373168,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293236.0766144,
+          "extend_start": 1760293236.0766144,
+          "extend_complete": 1760293242.1828291,
+          "retract_start": 1760293242.1828291,
+          "retract_complete": 1760293247.9276066,
+          "complete_time": 1760293247.9276066,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293254.8357952,
+          "extend_start": 1760293254.8357952,
+          "extend_complete": 1760293260.9158242,
+          "retract_start": 1760293260.9158242,
+          "retract_complete": 1760293266.1852603,
+          "complete_time": 1760293266.1852603,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293348.0002606,
+          "extend_start": 1760293348.0002606,
+          "extend_complete": 1760293354.5259223,
+          "retract_start": 1760293354.5259223,
+          "retract_complete": 1760293359.9157531,
+          "complete_time": 1760293359.9157531,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293385.659814,
+          "extend_start": 1760293385.659814,
+          "extend_complete": 1760293391.6615996,
+          "retract_start": 1760293391.6615996,
+          "retract_complete": 1760293396.9834404,
+          "complete_time": 1760293396.9834404,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293428.6463861,
+          "extend_start": 1760293428.6463861,
+          "extend_complete": 1760293435.0875516,
+          "retract_start": 1760293435.0875516,
+          "retract_complete": 1760293440.4789019,
+          "complete_time": 1760293440.4789019,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293442.5769863,
+          "extend_start": 1760293442.5769863,
+          "extend_complete": 1760293448.6642087,
+          "retract_start": 1760293448.6642087,
+          "retract_complete": 1760293454.4577565,
+          "complete_time": 1760293454.4577565,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293458.4948997,
+          "extend_start": 1760293458.4948997,
+          "extend_complete": 1760293465.0325422,
+          "retract_start": 1760293465.0325422,
+          "retract_complete": 1760293470.3324356,
+          "complete_time": 1760293470.3324356,
+          "aborted": false,
+          "abort_reason": null
+        },
+        {
+          "start_time": 1760293472.8155587,
+          "extend_start": 1760293472.8155587,
+          "extend_complete": 1760293479.1960077,
+          "retract_start": 1760293479.1960077,
+          "retract_complete": 1760293484.9240012,
+          "complete_time": 1760293484.9240012,
+          "aborted": false,
+          "abort_reason": null
+        }
+      ]
+    }
+  ],
+  "current_basket": null,
   "current_sequence_stage": "IDLE",
   "daily_stats": {}
 }
