@@ -42,6 +42,32 @@ def create_app(production_stats):
             logger.error(f"Error getting current basket stats: {e}")
             return jsonify({'error': str(e)}), 500
     
+    @app.route('/api/production/complete-basket', methods=['POST'])
+    def complete_basket():
+        """Complete the current basket (simulates operator basket exchange signal)"""
+        try:
+            production_stats.handle_basket_exchange()
+            logger.info("Basket completion triggered via web dashboard")
+            return jsonify({'message': 'Basket completed successfully'})
+        except Exception as e:
+            logger.error(f"Error completing basket: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/baskets')
+    def basket_history():
+        """Show detailed basket statistics page"""
+        return render_template('basket_history.html')
+    
+    @app.route('/api/baskets/history')
+    def get_basket_history():
+        """Get detailed basket history"""
+        try:
+            baskets = production_stats.get_basket_history()
+            return jsonify(baskets)
+        except Exception as e:
+            logger.error(f"Error getting basket history: {e}")
+            return jsonify({'error': str(e)}), 500
+    
     @app.route('/api/production/reset', methods=['POST'])
     def reset_production_stats():
         """Reset all production statistics"""

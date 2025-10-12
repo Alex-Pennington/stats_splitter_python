@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basket History - Firewood Splitter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .nav-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .nav-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid #007bff;
+        }
+        
+        .nav-links a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .summary-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .current-basket {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .current-basket h2 {
+            color: #856404;
+            margin: 0 0 15px 0;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .number-cell {
+            text-align: right;
+        }
+        
+        .success-rate {
+            font-weight: bold;
+        }
+        
+        .success-rate.good {
+            color: #28a745;
+        }
+        
+        .success-rate.fair {
+            color: #ffc107;
+        }
+        
+        .success-rate.poor {
+            color: #dc3545;
+        }
+        
+        .fuel-info {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        
+        .refresh-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Firewood Splitter - Basket History</h1>
+        
+        <div class="nav-links">
+            <a href="/">← Back to Dashboard</a>
+            <button class="refresh-button" onclick="loadBasketHistory()">🔄 Refresh Data</button>
+        </div>
+        
+        <div class="summary-cards" id="summary-cards">
+            <!-- Summary cards will be populated by JavaScript -->
+        </div>
+        
+        <div id="current-basket-section">
+            <!-- Current basket info will be populated by JavaScript -->
+        </div>
+        
+        <div class="table-container">
+            <h2>Completed Baskets</h2>
+            <div id="loading" class="loading">Loading basket history...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            
+            <table id="basket-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Basket #</th>
+                        <th>Start Time</th>
+                        <th>Complete Time</th>
+                        <th>Duration</th>
+                        <th>Splits Complete</th>
+                        <th>Cycles Attempted</th>
+                        <th>Success Rate</th>
+                        <th>Start Fuel (gal)</th>
+                        <th>End Fuel (gal)</th>
+                        <th>Fuel Used (gal)</th>
+                        <th>Splits/Gallon</th>
+                    </tr>
+                </thead>
+                <tbody id="basket-table-body">
+                    <!-- Basket data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function loadBasketHistory() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('basket-table').style.display = 'none';
+            
+            fetch('/api/baskets/history')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    displayBasketHistory(data);
+                })
+                .catch(error => {
+                    console.error('Error loading basket history:', error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('error').textContent = 'Error loading basket history: ' + error.message;
+                });
+        }
+        
+        function displayBasketHistory(data) {
+            document.getElementById('loading').style.display = 'none';
+            
+            // Display summary cards
+            displaySummaryCards(data);
+            
+            // Display current basket
+            displayCurrentBasket(data.current_basket);
+            
+            // Display completed baskets table
+            const tableBody = document.getElementById('basket-table-body');
+            tableBody.innerHTML = '';
+            
+            if (data.completed_baskets.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: #6c757d;">No completed baskets yet</td></tr>';
+            } else {
+                data.completed_baskets.forEach(basket => {
+                    const row = document.createElement('tr');
+                    
+                    const successRate = basket.success_rate;
+                    let successClass = 'poor';
+                    if (successRate >= 90) successClass = 'good';
+                    else if (successRate >= 75) successClass = 'fair';
+                    
+                    row.innerHTML = `
+                        <td class="number-cell">${basket.basket_number}</td>
+                        <td>${basket.start_time_formatted}</td>
+                        <td>${basket.complete_time_formatted || 'N/A'}</td>
+                        <td>${basket.duration_formatted}</td>
+                        <td class="number-cell">${basket.splits_completed}</td>
+                        <td class="number-cell">${basket.cycles_attempted}</td>
+                        <td class="number-cell success-rate ${successClass}">${successRate.toFixed(1)}%</td>
+                        <td class="number-cell">${basket.start_fuel_level !== null ? basket.start_fuel_level.toFixed(2) : 'N/A'}</td>
+                        <td class="number-cell">${basket.end_fuel_level !== null ? basket.end_fuel_level.toFixed(2) : 'N/A'}</td>
+                        <td class="number-cell">${basket.fuel_consumed.toFixed(2)}</td>
+                        <td class="number-cell">${basket.splits_per_gallon.toFixed(1)}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            document.getElementById('basket-table').style.display = 'table';
+        }
+        
+        function displaySummaryCards(data) {
+            const summaryCards = document.getElementById('summary-cards');
+            summaryCards.innerHTML = `
+                <div class="summary-card">
+                    <h3>Total Baskets Completed</h3>
+                    <div class="value">${data.total_baskets_completed}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Fuel Consumed</h3>
+                    <div class="value">${data.total_fuel_consumed.toFixed(2)} gal</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Average Fuel per Basket</h3>
+                    <div class="value">${data.average_fuel_per_basket.toFixed(2)} gal</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Average Splits per Gallon</h3>
+                    <div class="value">${data.total_fuel_consumed > 0 ? (data.completed_baskets.reduce((sum, b) => sum + b.splits_completed, 0) / data.total_fuel_consumed).toFixed(1) : '0'}</div>
+                </div>
+            `;
+        }
+        
+        function displayCurrentBasket(currentBasket) {
+            const currentBasketSection = document.getElementById('current-basket-section');
+            
+            if (currentBasket) {
+                const successRate = currentBasket.success_rate;
+                let successClass = 'poor';
+                if (successRate >= 90) successClass = 'good';
+                else if (successRate >= 75) successClass = 'fair';
+                
+                currentBasketSection.innerHTML = `
+                    <div class="current-basket">
+                        <h2>🔄 Current Basket (#${currentBasket.basket_number})</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div><strong>Started:</strong> ${currentBasket.start_time_formatted}</div>
+                            <div><strong>Duration:</strong> ${currentBasket.duration_formatted}</div>
+                            <div><strong>Splits:</strong> ${currentBasket.splits_completed} / ${currentBasket.cycles_attempted} attempts</div>
+                            <div><strong>Success Rate:</strong> <span class="success-rate ${successClass}">${successRate.toFixed(1)}%</span></div>
+                            <div><strong>Start Fuel:</strong> ${currentBasket.start_fuel_level !== null ? currentBasket.start_fuel_level.toFixed(2) + ' gal' : 'N/A'}</div>
+                            <div><strong>Current Fuel:</strong> ${currentBasket.end_fuel_level !== null ? currentBasket.end_fuel_level.toFixed(2) + ' gal' : 'N/A'}</div>
+                            <div><strong>Fuel Used:</strong> ${currentBasket.fuel_consumed.toFixed(2)} gal</div>
+                            <div><strong>Splits/Gallon:</strong> ${currentBasket.splits_per_gallon.toFixed(1)}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                currentBasketSection.innerHTML = '';
+            }
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadBasketHistory, 30000);
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadBasketHistory);
+    </script>
+</body>
+</html>

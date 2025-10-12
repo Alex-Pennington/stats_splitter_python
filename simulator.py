@@ -120,55 +120,78 @@ class SplitterSimulator:
         self.current_fuel_level = max(0, self.current_fuel_level - fuel_per_split)
     
     async def simulate_production_cycle(self):
-        """Simulate a single production cycle (extend + retract)"""
+        """Simulate a single production cycle (extend + retract) using LogSplitter Controller topics"""
         logger.info(f"Starting production cycle #{self.total_splits + 1}")
         
-        # Start sequence event
-        self.publish_message("r4/sequence/event", "start")
+        # Start sequence - sequence becomes active
+        self.publish_message("controller/sequence/active", "1")
+        self.publish_message("controller/sequence/stage", "1")
+        self.publish_message("controller/sequence/event", "started_R1")
+        self.publish_message("controller/sequence/state", "start")
         await asyncio.sleep(0.1 / self.simulation_speed)
         
-        # EXTENDING phase
+        # EXTENDING phase - activate extend relay
         self.current_sequence_stage = "EXTENDING"
-        self.publish_message("r4/sequence/status", "EXTENDING")
+        self.publish_message("controller/relays/1/state", "1")  # Extend valve ON
+        self.publish_message("controller/relays/1/active", "true")
         
         extend_duration = random.uniform(3, 6) / self.simulation_speed  # 3-6 seconds
         for i in range(int(extend_duration * 2)):  # Publish pressure every 0.5 seconds
             self.current_pressure = self.get_pressure_for_stage("EXTENDING")
-            self.publish_message("r4/pressure/hydraulic_system", f"{self.current_pressure:.1f}")
+            self.publish_message("controller/pressure/hydraulic_system", f"{self.current_pressure:.1f}")
             await asyncio.sleep(0.5 / self.simulation_speed)
         
-        # Extend complete event
-        self.publish_message("r4/sequence/event", "extend_complete")
+        # Extend limit reached
+        self.publish_message("controller/inputs/6/state", "1")  # Extend limit switch
+        self.publish_message("controller/inputs/6/active", "true")
+        self.publish_message("controller/relays/1/state", "0")  # Extend valve OFF
+        self.publish_message("controller/relays/1/active", "false")
+        
+        # Switch to retract
+        self.publish_message("controller/sequence/event", "switched_to_R2_pressure_or_limit")
+        self.publish_message("controller/sequence/stage", "2")
         await asyncio.sleep(0.1 / self.simulation_speed)
         
-        # RETRACTING phase
+        # RETRACTING phase - activate retract relay
         self.current_sequence_stage = "RETRACTING"
-        self.publish_message("r4/sequence/status", "RETRACTING")
+        self.publish_message("controller/relays/2/state", "1")  # Retract valve ON
+        self.publish_message("controller/relays/2/active", "true")
+        self.publish_message("controller/inputs/6/state", "0")  # Extend limit released
+        self.publish_message("controller/inputs/6/active", "false")
         
         retract_duration = random.uniform(2, 4) / self.simulation_speed  # 2-4 seconds
         for i in range(int(retract_duration * 2)):  # Publish pressure every 0.5 seconds
             self.current_pressure = self.get_pressure_for_stage("RETRACTING")
-            self.publish_message("r4/pressure/hydraulic_system", f"{self.current_pressure:.1f}")
+            self.publish_message("controller/pressure/hydraulic_system", f"{self.current_pressure:.1f}")
             await asyncio.sleep(0.5 / self.simulation_speed)
         
-        # Retract complete event (split completed)
-        self.publish_message("r4/sequence/event", "retract_complete")
+        # Retract limit reached (cycle completed)
+        self.publish_message("controller/inputs/7/state", "1")  # Retract limit switch
+        self.publish_message("controller/inputs/7/active", "true")
+        self.publish_message("controller/relays/2/state", "0")  # Retract valve OFF
+        self.publish_message("controller/relays/2/active", "false")
+        
+        # Sequence complete
+        self.publish_message("controller/sequence/event", "complete_pressure_or_limit")
+        self.publish_message("controller/sequence/state", "complete")
         await asyncio.sleep(0.1 / self.simulation_speed)
         
         # Return to IDLE
         self.current_sequence_stage = "IDLE"
-        self.publish_message("r4/sequence/status", "IDLE")
+        self.publish_message("controller/sequence/active", "0")  # Sequence inactive
+        self.publish_message("controller/sequence/stage", "0")   # Stage 0 = idle
+        self.publish_message("controller/inputs/7/state", "0")   # Retract limit released
+        self.publish_message("controller/inputs/7/active", "false")
+        
+        # Publish idle pressure
         self.current_pressure = self.get_pressure_for_stage("IDLE")
-        self.publish_message("r4/pressure/hydraulic_system", f"{self.current_pressure:.1f}")
+        self.publish_message("controller/pressure/hydraulic_system", f"{self.current_pressure:.1f}")
         
         # Update counters
         self.total_splits += 1
         self.splits_in_current_basket += 1
         self.last_cycle_time = time.time()
         self.update_fuel_level()
-        
-        # Publish fuel level
-        self.publish_message("monitor/fuel_level", f"{self.current_fuel_level:.2f}")
         
         logger.info(f"Completed split #{self.total_splits} "
                    f"({self.splits_in_current_basket}/{self.splits_per_basket} in current basket)")
@@ -197,15 +220,14 @@ class SplitterSimulator:
         logger.info(f"🗑️ BASKET COMPLETE #{self.total_baskets}: "
                    f"{self.splits_in_current_basket} splits in {basket_duration_minutes:.1f} minutes")
         
-        # Send basket exchange signal
-        self.publish_message("controller/signals/basket_exchange", "1")
-        await asyncio.sleep(0.5 / self.simulation_speed)
-        self.publish_message("controller/signals/basket_exchange", "0")
-        
-        # Simulate operator input (basket exchange button)
-        self.publish_message("controller/inputs/8", "1")  # Pin 8 operator signal
+        # Simulate operator input for basket exchange
+        # In the LogSplitter Controller, basket completion would likely be triggered by
+        # an operator input or automated count, but we'll simulate with a general input
+        self.publish_message("controller/inputs/3/state", "1")  # General input for basket signal
+        self.publish_message("controller/inputs/3/active", "true")
         await asyncio.sleep(0.2 / self.simulation_speed)
-        self.publish_message("controller/inputs/8", "0")
+        self.publish_message("controller/inputs/3/state", "0")
+        self.publish_message("controller/inputs/3/active", "false")
         
         # Reset for new basket
         self.splits_in_current_basket = 0
@@ -217,13 +239,28 @@ class SplitterSimulator:
         await asyncio.sleep(exchange_pause)
     
     async def simulate_occasional_events(self):
-        """Simulate occasional events like pressure relief, aborts, etc."""
-        # Small chance of abort or timeout
+        """Simulate occasional events like safety stops, aborts, etc."""
+        # Small chance of safety or abort events
         if random.random() < 0.02:  # 2% chance per cycle
-            event = random.choice(["abort", "timeout", "safety_stop"])
-            logger.warning(f"Simulating {event} event")
-            self.publish_message("r4/sequence/event", event)
+            event_type = random.choice(["safety", "abort", "estop"])
             
+            if event_type == "safety":
+                logger.warning("Simulating safety system activation")
+                self.publish_message("controller/safety/active", "1")
+                await asyncio.sleep(0.5 / self.simulation_speed)
+                self.publish_message("controller/safety/active", "0")
+                
+            elif event_type == "abort":
+                logger.warning("Simulating sequence abort")
+                self.publish_message("controller/sequence/event", "abort")
+                self.publish_message("controller/sequence/state", "abort")
+                
+            elif event_type == "estop":
+                logger.warning("Simulating emergency stop")
+                self.publish_message("controller/safety/estop", "1")
+                await asyncio.sleep(1.0 / self.simulation_speed)
+                self.publish_message("controller/safety/estop", "0")
+                
             # Return to idle after event
             await asyncio.sleep(1.0 / self.simulation_speed)
             self.current_sequence_stage = "IDLE"

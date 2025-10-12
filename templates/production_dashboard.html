@@ -196,6 +196,10 @@
         <div class="header">
             <h1>🪓 Firewood Splitter Production Dashboard</h1>
             <p>Real-time monitoring of hydraulic log splitter operations</p>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="/baskets" style="background-color: #007bff; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">📊 Basket History</a>
+                <button onclick="completeBasket()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px; cursor: pointer;">✅ Complete Basket</button>
+            </div>
         </div>
 
         <div class="status-bar">
@@ -221,7 +225,8 @@
 
         <div class="controls">
             <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
-            <button class="btn danger" onclick="resetStats()">🗑️ Reset Statistics</button>
+            <button class="btn" onclick="completeBasket()">🗑️ Complete Basket</button>
+            <button class="btn danger" onclick="resetStats()">� Reset Statistics</button>
         </div>
 
         <div id="error-message" class="error" style="display: none;"></div>
@@ -444,6 +449,23 @@
             } catch (error) {
                 console.error('Error refreshing data:', error);
                 showError(`Failed to refresh data: ${error.message}`);
+            }
+        }
+
+        async function completeBasket() {
+            if (confirm('Complete the current basket and start a new one?')) {
+                try {
+                    const response = await fetch('/api/production/complete-basket', { method: 'POST' });
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    const result = await response.json();
+                    console.log('Basket completed:', result.message);
+                    await refreshData();
+                } catch (error) {
+                    console.error('Error completing basket:', error);
+                    showError(`Failed to complete basket: ${error.message}`);
+                }
             }
         }
 
