@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT Statistics Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .stat-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .stat-subtitle {
+            font-size: 12px;
+            color: #999;
+        }
+        .topics-table {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+        .number {
+            font-family: 'Courier New', monospace;
+            text-align: right;
+        }
+        .topic-name {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .btn.danger {
+            background: #e53e3e;
+        }
+        .btn.danger:hover {
+            background: #c53030;
+        }
+        .last-updated {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MQTT Statistics Dashboard</h1>
+            <p>Real-time monitoring of MQTT topic statistics</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="refreshData()">Refresh Data</button>
+            <button class="btn danger" onclick="resetStats()">Reset Statistics</button>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Topics</div>
+                <div class="stat-value" id="total-topics">-</div>
+                <div class="stat-subtitle">Active topic subscriptions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Total Messages</div>
+                <div class="stat-value" id="total-messages">-</div>
+                <div class="stat-subtitle">Messages processed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Uptime</div>
+                <div class="stat-value" id="uptime">-</div>
+                <div class="stat-subtitle">Time since start</div>
+            </div>
+        </div>
+
+        <div class="topics-table">
+            <h3>Topic Statistics</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th class="number">Count</th>
+                        <th class="number">Average</th>
+                        <th class="number">Min</th>
+                        <th class="number">Max</th>
+                        <th class="number">Last Value</th>
+                        <th class="number">Rate/min</th>
+                    </tr>
+                </thead>
+                <tbody id="topics-tbody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #666;">Loading data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="last-updated">
+            Last updated: <span id="last-updated">Never</span>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval;
+
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '-';
+            if (typeof num === 'number') {
+                return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+            }
+            return num;
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '-';
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${hours}h ${minutes}m ${secs}s`;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function refreshData() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                
+                // Update summary stats
+                document.getElementById('total-topics').textContent = data.total_topics || 0;
+                document.getElementById('total-messages').textContent = formatNumber(data.total_messages || 0);
+                document.getElementById('uptime').textContent = formatDuration(data.uptime_seconds);
+                
+                // Update topics table
+                const tbody = document.getElementById('topics-tbody');
+                if (data.topics && Object.keys(data.topics).length > 0) {
+                    tbody.innerHTML = '';
+                    Object.values(data.topics).forEach(topic => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td class="topic-name" title="${topic.topic}">${topic.topic}</td>
+                            <td class="number">${formatNumber(topic.count)}</td>
+                            <td class="number">${formatNumber(topic.average)}</td>
+                            <td class="number">${formatNumber(topic.min)}</td>
+                            <td class="number">${formatNumber(topic.max)}</td>
+                            <td class="number">${formatNumber(topic.last_value)}</td>
+                            <td class="number">${formatNumber(topic.rate_per_minute)}</td>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No data available</td></tr>';
+                }
+                
+                document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+                
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                showError(`Failed to refresh data: ${error.message}`);
+            }
+        }
+
+        async function resetStats() {
+            if (confirm('Are you sure you want to reset all statistics? This cannot be undone.')) {
+                try {
+                    const response = await fetch('/api/reset', { method: 'POST' });
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    await refreshData();
+                } catch (error) {
+                    console.error('Error resetting stats:', error);
+                    showError(`Failed to reset statistics: ${error.message}`);
+                }
+            }
+        }
+
+        // Auto-refresh every 5 seconds
+        function startAutoRefresh() {
+            refreshInterval = setInterval(refreshData, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            startAutoRefresh();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', stopAutoRefresh);
+    </script>
+</body>
+</html>
