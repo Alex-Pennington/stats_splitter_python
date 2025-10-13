@@ -467,5 +467,6 @@ This system is designed for remote farm operations:
 ---
 
 **Industrial Firewood Production Monitoring System**  
-*Real-time analytics for commercial log splitting operations* 
+*Real-time analytics for commercial log splitting operations*
+ 
  

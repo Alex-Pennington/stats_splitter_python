@@ -17,6 +17,7 @@ import json
 import random
 import time
 import logging
+import requests
 from datetime import datetime
 from typing import Optional
 import paho.mqtt.client as mqtt
@@ -56,7 +57,9 @@ class SplitterSimulator:
         self.current_fuel_level = 5.0    # Start with 5 gallons (realistic farm level)
         self.splits_in_current_basket = 0
         self.basket_start_time = time.time()
+        self.basket_start_sim_time = 0.0  # Track simulation time for basket
         self.last_cycle_time = time.time()
+        self.simulation_elapsed_time = 0.0  # Total elapsed simulation time
         
         # Running totals
         self.total_splits = 0
@@ -67,6 +70,7 @@ class SplitterSimulator:
         # Simulation control
         self.running = False
         self.simulation_speed = 1.0      # 1.0 = real time, 10.0 = 10x speed
+        self.web_server_url = "http://localhost:5000"  # Web server for basket completion
         
     def connect_mqtt(self):
         """Connect to MQTT broker"""
@@ -237,6 +241,11 @@ class SplitterSimulator:
         self.total_splits += 1
         self.splits_in_current_basket += 1
         self.last_cycle_time = time.time()
+        
+        # Update simulation time (cycle took ~17 seconds in simulation time)
+        cycle_sim_time = (extend_duration + retract_duration) * self.simulation_speed
+        self.simulation_elapsed_time += cycle_sim_time
+        
         self.update_fuel_level()
         
         # Publish fuel level
@@ -266,17 +275,23 @@ class SplitterSimulator:
         # Return to idle
         self.current_sequence_stage = "IDLE"
         self.total_cycles += 1  # Count the attempt
+        
+        # Update simulation time for partial cycle (aborts still take time)
+        partial_cycle_time = 8.0  # Assume abort takes ~8 seconds on average
+        self.simulation_elapsed_time += partial_cycle_time
+        
         # Note: Don't increment total_splits or splits_in_current_basket for aborts
     
     async def check_basket_completion(self):
         """Check if current basket should be completed"""
-        basket_duration = time.time() - self.basket_start_time
-        basket_duration_minutes = basket_duration / 60
+        # Calculate simulation time elapsed for current basket
+        basket_sim_duration = self.simulation_elapsed_time - self.basket_start_sim_time
+        basket_sim_duration_minutes = basket_sim_duration / 60
         
-        # Complete basket if we've reached target splits or time limit
+        # Complete basket if we've reached target splits or simulation time limit
         should_complete = (
             self.splits_in_current_basket >= self.splits_per_basket or
-            basket_duration_minutes >= 35  # Maximum 35 minutes per basket
+            basket_sim_duration_minutes >= 35  # Maximum 35 minutes per basket (simulation time)
         )
         
         if should_complete:
@@ -284,13 +299,15 @@ class SplitterSimulator:
     
     async def complete_basket(self):
         """Complete the current basket and start a new one"""
-        basket_duration = time.time() - self.basket_start_time
-        basket_duration_minutes = basket_duration / 60
+        # Calculate simulation time elapsed for current basket
+        basket_sim_duration = self.simulation_elapsed_time - self.basket_start_sim_time
+        basket_sim_duration_minutes = basket_sim_duration / 60
         
         self.total_baskets += 1
         
         logger.info(f"🗑️ BASKET COMPLETE #{self.total_baskets}: "
-                   f"{self.splits_in_current_basket} splits in {basket_duration_minutes:.1f} minutes")
+                   f"{self.splits_in_current_basket} splits in {basket_sim_duration_minutes:.1f} simulation minutes "
+                   f"(speed: {self.simulation_speed}x)")
         
         # Simulate operator input for basket exchange (LogSplitter Controller topic)
         self.publish_message("controller/inputs/3/state", "1")  # Basket exchange signal
@@ -298,14 +315,33 @@ class SplitterSimulator:
         await asyncio.sleep(0.2 / self.simulation_speed)
         self.publish_message("controller/inputs/3/state", "0")
         
+        # CRITICAL: Simulate operator completing basket via web interface
+        await self.trigger_basket_completion_http()
+        
         # Reset for new basket
         self.splits_in_current_basket = 0
         self.basket_start_time = time.time()
+        self.basket_start_sim_time = self.simulation_elapsed_time
         
         # Simulate brief pause for basket exchange (5-15 seconds)
         exchange_pause = random.uniform(5, 15) / self.simulation_speed
         logger.info(f"Pausing {exchange_pause:.1f}s for basket exchange...")
         await asyncio.sleep(exchange_pause)
+    
+    async def trigger_basket_completion_http(self):
+        """Trigger basket completion via HTTP API (simulates operator web interface action)"""
+        try:
+            url = f"{self.web_server_url}/api/production/complete-basket"
+            response = await asyncio.get_event_loop().run_in_executor(
+                None, 
+                lambda: requests.post(url, json={}, timeout=5)
+            )
+            if response.status_code == 200:
+                logger.info(f"✅ Basket completion triggered via HTTP API (status: {response.status_code})")
+            else:
+                logger.warning(f"⚠️ HTTP basket completion failed (status: {response.status_code})")
+        except Exception as e:
+            logger.error(f"❌ Failed to trigger basket completion via HTTP: {e}")
     
     async def simulate_occasional_events(self):
         """Simulate occasional events like safety stops, aborts, etc."""
@@ -370,6 +406,8 @@ class SplitterSimulator:
         self.running = True
         self.session_start_time = time.time()
         self.basket_start_time = time.time()
+        self.basket_start_sim_time = 0.0  # Reset simulation time for first basket
+        self.simulation_elapsed_time = 0.0  # Reset total simulation time
         
         # Start periodic data publishing
         periodic_task = asyncio.create_task(self.publish_periodic_data())
@@ -388,6 +426,10 @@ class SplitterSimulator:
                 # Wait for realistic gap time between cycles (log positioning)
                 gap_time = self.get_realistic_gap_time() / self.simulation_speed
                 await asyncio.sleep(gap_time)
+                
+                # Track simulation time for gap
+                gap_sim_time = self.get_realistic_gap_time()
+                self.simulation_elapsed_time += gap_sim_time
                 
                 # Check if we have fuel
                 if self.current_fuel_level <= 0:
