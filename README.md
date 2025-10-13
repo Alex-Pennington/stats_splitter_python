@@ -344,7 +344,7 @@ Access at: `http://localhost:5000`
 
 ### Production Simulator
 
-The included simulator generates realistic firewood splitter data:
+The included simulator generates realistic firewood splitter data based on real farm timing patterns:
 
 ```powershell
 # Run 5-minute simulation at 2x speed
@@ -354,14 +354,83 @@ python simulator.py --duration 5 --speed 2
 python simulator.py --duration 60 --speed 1
 ```
 
+### Simulator Command Line Flags
+
+The simulator accepts the following command line arguments:
+
+#### Connection Parameters
+
+```powershell
+# MQTT broker settings (defaults to .env values)
+--host          # MQTT broker IP (default: from .env MQTT_BROKER)
+--port          # MQTT broker port (default: from .env MQTT_PORT)
+--username      # MQTT username (default: from .env MQTT_USERNAME) 
+--password      # MQTT password (default: from .env MQTT_PASSWORD)
+```
+
+#### Simulation Control
+
+```powershell
+--duration      # Simulation duration in minutes (default: 10)
+--speed         # Speed multiplier 1.0-10.0x (default: 1.0)
+--splits-per-basket  # Splits per basket (default: 60)
+--cycle-time    # Average cycle time in seconds (default: 30.0)
+```
+
+#### Example Usage Commands
+
+**Quick Test (5 minutes at 2x speed):**
+
+```powershell
+python simulator.py --duration 5 --speed 2
+```
+
+**Extended Production Test (30 minutes at normal speed):**
+
+```powershell
+python simulator.py --duration 30 --speed 1
+```
+
+**Fast Development Testing (2 minutes at 10x speed):**
+
+```powershell
+python simulator.py --duration 2 --speed 10
+```
+
+**Custom Basket Size Testing:**
+
+```powershell
+python simulator.py --duration 15 --splits-per-basket 40 --cycle-time 25
+```
+
+**Override MQTT Connection:**
+
+```powershell
+python simulator.py --host 192.168.1.100 --port 1883 --username testuser --password testpass --duration 10
+```
+
+### Realistic Farm Timing Patterns
+
+The simulator uses real farm data patterns:
+
+- **Extend Time**: 5-7 seconds (average 6.1s) - hydraulic cylinder extending
+- **Retract Time**: 4-6 seconds (average 5.5s) - cylinder retracting after split
+- **Gap Time**: 2-8 seconds (average 5.1s) - positioning next log
+- **Abort Rate**: 7% - realistic failure/retry rate from farm operations
+- **Total Cycle**: ~17 seconds average (matches real farm timing)
+
 ### Simulation Parameters
 
 - **Cycle Time**: 30 seconds average with realistic variance
 - **Basket Completion**: 60 splits per basket (30 minutes)
 - **Fuel Consumption**: 0.25 gallons per completed basket
 - **Production Rate**: 100-120 splits/hour typical
+- **MQTT Topics**: Uses LogSplitter Controller topic structure:
+  - `controller/sequence/+` - Cycle sequence data
+  - `controller/pressure/+` - Hydraulic pressure readings
+  - `controller/relays/+/state` - Relay state changes
 
-## 🖥️ Windows Deployment
+## 🖥️ Windows Optimization
 
 This system is optimized for Windows environments:
 
@@ -398,4 +467,5 @@ This system is designed for remote farm operations:
 ---
 
 **Industrial Firewood Production Monitoring System**  
-*Real-time analytics for commercial log splitting operations*
+*Real-time analytics for commercial log splitting operations* 
+ 
