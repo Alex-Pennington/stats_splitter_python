@@ -407,10 +407,6 @@
                             <canvas id="fuelChart" class="chart-canvas"></canvas>
                         </div>
                         <div class="chart-container">
-                            <h3>Success Rate Distribution</h3>
-                            <canvas id="successChart" class="chart-canvas"></canvas>
-                        </div>
-                        <div class="chart-container">
                             <h3>Active vs Idle Time</h3>
                             <canvas id="timeChart" class="chart-canvas"></canvas>
                         </div>
@@ -589,9 +585,6 @@
             // Fuel Efficiency Chart
             createFuelChart(data);
             
-            // Success Rate Distribution
-            createSuccessChart(data);
-            
             // Active vs Idle Time Chart
             createTimeChart(data);
         }
@@ -671,45 +664,6 @@
                             },
                         }
                     }
-                }
-            });
-        }
-        
-        function createSuccessChart(data) {
-            const ctx = document.getElementById('successChart').getContext('2d');
-            
-            const successRanges = {
-                'Excellent (90-100%)': 0,
-                'Good (75-89%)': 0,
-                'Fair (60-74%)': 0,
-                'Poor (<60%)': 0
-            };
-            
-            data.forEach(basket => {
-                const rate = basket.success_rate;
-                if (rate >= 90) successRanges['Excellent (90-100%)']++;
-                else if (rate >= 75) successRanges['Good (75-89%)']++;
-                else if (rate >= 60) successRanges['Fair (60-74%)']++;
-                else successRanges['Poor (<60%)']++;
-            });
-            
-            charts.success = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(successRanges),
-                    datasets: [{
-                        data: Object.values(successRanges),
-                        backgroundColor: [
-                            '#28a745',
-                            '#17a2b8',
-                            '#ffc107',
-                            '#dc3545'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
                 }
             });
         }
