@@ -324,6 +324,154 @@
         .nav-btn.primary:hover {
             background: #0056b3;
         }
+        
+        .print-btn {
+            background: #28a745 !important;
+        }
+        
+        .summary-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-card {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #2d5a27;
+        }
+        
+        .summary-card h4 {
+            margin: 0 0 8px 0;
+            color: #6c757d;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .summary-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2d5a27;
+            margin: 0;
+        }
+        
+        .print-btn:hover {
+            background: #218838 !important;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white !important;
+                margin: 0;
+                padding: 0;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+            
+            .container {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .header {
+                display: none !important;
+            }
+            
+            .nav-buttons {
+                display: none !important;
+            }
+            
+            .file-upload {
+                display: none !important;
+            }
+            
+            .filters {
+                display: none !important;
+            }
+            
+            .charts-grid {
+                display: none !important;
+            }
+            
+            .data-table {
+                page-break-inside: avoid;
+                margin: 0;
+            }
+            
+            .table-container {
+                overflow: visible !important;
+                max-height: none !important;
+            }
+            
+            table {
+                width: 100% !important;
+                font-size: 10px !important;
+                border-collapse: collapse;
+            }
+            
+            th, td {
+                border: 1px solid #ddd !important;
+                padding: 4px !important;
+                text-align: left;
+            }
+            
+            th {
+                background: #f8f9fa !important;
+                font-weight: bold;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .export-info {
+                background: #f8f9fa !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 15px;
+                page-break-inside: avoid;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .summary-cards, #printSummary {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+            }
+            
+            .summary-grid {
+                display: none !important;
+            }
+            
+            .summary-card {
+                flex: 1 !important;
+                min-width: 200px !important;
+                border: 1px solid #ddd !important;
+                padding: 10px !important;
+                background: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .summary-card h4 {
+                margin-bottom: 5px !important;
+                font-size: 12px !important;
+            }
+            
+            .summary-card .value {
+                font-size: 16px !important;
+                font-weight: bold;
+                color: #2d5a27 !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -338,6 +486,7 @@
                 <a href="/" class="nav-btn">← Back to Dashboard</a>
                 <a href="/baskets" class="nav-btn">📊 Live Basket History</a>
                 <button onclick="location.reload()" class="nav-btn">🔄 Reload Viewer</button>
+                <button onclick="printReport()" class="nav-btn print-btn">🖨️ Print Report</button>
             </div>
             
             <div class="file-upload" id="fileUpload">
@@ -359,6 +508,10 @@
             <div id="dashboard" class="dashboard">
                 <div id="exportInfo" class="export-info">
                     <!-- Export information will be populated here -->
+                </div>
+                
+                <div class="summary-cards" id="printSummary" style="display: none;">
+                    <!-- Print-friendly summary cards will be populated here -->
                 </div>
                 
                 <div class="summary-grid" id="summaryGrid">
@@ -445,6 +598,114 @@
         let loadedData = null;
         let filteredData = null;
         let charts = {};
+        
+        // Print function
+        function printReport() {
+            console.log('Print button clicked');
+            console.log('Loaded data:', loadedData);
+            
+            if (!loadedData || !loadedData.basket_history || !loadedData.basket_history.completed_baskets) {
+                alert('Please load data first before printing.');
+                return;
+            }
+            
+            const basketData = loadedData.basket_history.completed_baskets;
+            if (!Array.isArray(basketData) || basketData.length === 0) {
+                alert('No basket data available for printing.');
+                return;
+            }
+            
+            try {
+                // Show print summary and hide charts
+                console.log('Creating print summary...');
+                createPrintSummary(basketData);
+                
+                const printSummary = document.getElementById('printSummary');
+                if (printSummary) {
+                    printSummary.style.display = 'flex';
+                    console.log('Print summary displayed');
+                } else {
+                    console.error('Print summary element not found');
+                }
+                
+                // Print the page
+                console.log('Opening print dialog...');
+                window.print();
+                
+                // Hide print summary after printing
+                setTimeout(() => {
+                    if (printSummary) {
+                        printSummary.style.display = 'none';
+                        console.log('Print summary hidden');
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error in printReport:', error);
+                alert('Error preparing print report: ' + error.message);
+            }
+        }
+        
+        // Create print-friendly summary cards
+        function createPrintSummary(data) {
+            console.log('Creating print summary for data:', data);
+            const summaryDiv = document.getElementById('printSummary');
+            
+            if (!summaryDiv) {
+                console.error('Print summary div not found');
+                return;
+            }
+            
+            // Calculate totals
+            const totalBaskets = data.length;
+            const totalSplits = data.reduce((sum, basket) => sum + (basket.splits_completed || 0), 0);
+            const totalFuel = data.reduce((sum, basket) => sum + (basket.fuel_consumed || 0), 0);
+            const totalDuration = data.reduce((sum, basket) => sum + (basket.duration_seconds || 0), 0);
+            const avgSplitsPerBasket = totalBaskets > 0 ? totalSplits / totalBaskets : 0;
+            const avgSplitsPerGallon = totalFuel > 0 ? totalSplits / totalFuel : 0;
+            
+            console.log('Calculated totals:', { totalBaskets, totalSplits, totalFuel, totalDuration });
+            
+            // Get date range
+            const dates = data.map(basket => new Date(basket.start_time * 1000));
+            const startDate = new Date(Math.min(...dates)).toLocaleDateString();
+            const endDate = new Date(Math.max(...dates)).toLocaleDateString();
+            
+            summaryDiv.innerHTML = `
+                <div class="summary-card">
+                    <h4>📅 Report Period</h4>
+                    <div class="value">${startDate === endDate ? startDate : `${startDate} - ${endDate}`}</div>
+                </div>
+                <div class="summary-card">
+                    <h4>🗂️ Total Baskets</h4>
+                    <div class="value">${totalBaskets}</div>
+                </div>
+                <div class="summary-card">
+                    <h4>🪓 Total Splits</h4>
+                    <div class="value">${totalSplits.toLocaleString()}</div>
+                </div>
+                <div class="summary-card">
+                    <h4>⛽ Fuel Used</h4>
+                    <div class="value">${totalFuel.toFixed(2)} gal</div>
+                </div>
+                <div class="summary-card">
+                    <h4>⏱️ Total Time</h4>
+                    <div class="value">${(totalDuration / 3600).toFixed(1)} hrs</div>
+                </div>
+                <div class="summary-card">
+                    <h4>📊 Avg Splits/Basket</h4>
+                    <div class="value">${avgSplitsPerBasket.toFixed(0)}</div>
+                </div>
+                <div class="summary-card">
+                    <h4>⚡ Efficiency</h4>
+                    <div class="value">${avgSplitsPerGallon.toFixed(0)} splits/gal</div>
+                </div>
+                <div class="summary-card">
+                    <h4>🏭 Production Rate</h4>
+                    <div class="value">${(totalSplits / (totalDuration / 3600)).toFixed(0)} splits/hr</div>
+                </div>
+            `;
+        }
         
         // File upload handling
         const fileUpload = document.getElementById('fileUpload');
