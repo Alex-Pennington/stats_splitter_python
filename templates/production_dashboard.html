@@ -216,6 +216,14 @@
                 <div class="status-value" id="system-status">Loading...</div>
             </div>
             <div class="status-item">
+                <div class="status-label">Fuel Level</div>
+                <div class="status-value" id="fuel-level">-- gal</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Temperature</div>
+                <div class="status-value" id="temperature">--°F</div>
+            </div>
+            <div class="status-item">
                 <div class="status-label">Basket Progress</div>
                 <div class="status-value" id="basket-progress">0 splits</div>
             </div>
@@ -397,6 +405,21 @@
                 updateStageIndicator(data.current_stage);
                 document.getElementById('system-status').textContent = 
                     (data.system_status || 'unknown').toUpperCase();
+                
+                // Update fuel level
+                const fuelLevel = data.current_fuel_level;
+                document.getElementById('fuel-level').textContent = 
+                    fuelLevel !== null && fuelLevel !== undefined ? 
+                    `${fuelLevel.toFixed(1)} gal` : '-- gal';
+                
+                // Update temperature (prefer local, fallback to remote)
+                const tempLocal = data.current_temperature_local;
+                const tempRemote = data.current_temperature_remote;
+                const displayTemp = tempLocal !== null && tempLocal !== undefined ? tempLocal : tempRemote;
+                document.getElementById('temperature').textContent = 
+                    displayTemp !== null && displayTemp !== undefined ? 
+                    `${displayTemp.toFixed(0)}°F` : '--°F';
+                
                 document.getElementById('basket-progress').textContent = 
                     `${data.current_basket?.splits_completed || 0} splits`;
                 document.getElementById('session-uptime').textContent = 

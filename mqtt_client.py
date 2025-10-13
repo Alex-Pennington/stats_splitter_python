@@ -111,6 +111,14 @@ class MQTTProductionClient:
             elif topic == 'monitor/fuel/gallons':
                 await self._handle_fuel_level(payload)
                 
+            # Handle temperature monitoring
+            elif topic == 'monitor/temperature/local':
+                await self._handle_temperature_reading(payload, 'local')
+            elif topic == 'monitor/temperature/remote':
+                await self._handle_temperature_reading(payload, 'remote')
+            elif topic == 'monitor/temperature':  # Legacy topic for backward compatibility
+                await self._handle_temperature_reading(payload, 'local')
+                
             # Handle command responses
             elif topic == 'controller/control/resp':
                 logger.info(f"Controller response: {payload}")
@@ -257,6 +265,15 @@ class MQTTProductionClient:
             self.production_stats.handle_fuel_level(fuel_level)
         except ValueError:
             logger.warning(f"Invalid fuel level reading: {payload}")
+    
+    async def _handle_temperature_reading(self, payload, sensor_type):
+        """Handle temperature readings from monitor/temperature/local or monitor/temperature/remote"""
+        try:
+            temperature = float(payload)
+            logger.debug(f"Temperature ({sensor_type}): {temperature}°F")
+            self.production_stats.handle_temperature_reading(temperature, sensor_type)
+        except ValueError:
+            logger.warning(f"Invalid temperature reading: {payload}")
     
     def stop(self):
         """Stop the MQTT client"""

@@ -188,6 +188,23 @@ def create_app(production_stats):
             logger.error(f"Error resetting production stats: {e}")
             return jsonify({'error': str(e)}), 500
     
+    @app.route('/api/monitor/status')
+    def get_monitor_status():
+        """Get current monitor readings (fuel, temperature)"""
+        try:
+            with production_stats.lock:
+                return jsonify({
+                    'fuel_level_gallons': production_stats._get_latest_fuel_level(),
+                    'temperature_local_f': production_stats._get_latest_temperature('local'),
+                    'temperature_remote_f': production_stats._get_latest_temperature('remote'),
+                    'fuel_readings_count': len(production_stats.fuel_level_readings),
+                    'temp_local_readings_count': len(production_stats.temperature_readings.get('local', [])),
+                    'temp_remote_readings_count': len(production_stats.temperature_readings.get('remote', []))
+                })
+        except Exception as e:
+            logger.error(f"Error getting monitor status: {e}")
+            return jsonify({'error': str(e)}), 500
+    
     # Legacy endpoints for backward compatibility
     @app.route('/api/stats')
     def get_all_stats():

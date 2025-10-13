@@ -306,7 +306,14 @@ class ProductionStatsEngine:
         
         # Performance metrics
         self.pressure_readings = []
+        # Fuel monitoring
         self.fuel_level_readings = []
+        
+        # Temperature monitoring
+        self.temperature_readings = {
+            'local': [],
+            'remote': []
+        }
         
         # Load existing data if available
         self._load_data()
@@ -725,6 +732,34 @@ class ProductionStatsEngine:
             return self.fuel_level_readings[-1]['fuel_level']
         return None
     
+    def handle_temperature_reading(self, temperature: float, sensor_type: str = 'local', timestamp: float = None):
+        """Process temperature readings from monitor/temperature/local or monitor/temperature/remote"""
+        if timestamp is None:
+            timestamp = time.time()
+            
+        sensor_type = sensor_type.lower()
+        if sensor_type not in ['local', 'remote']:
+            logger.warning(f"Unknown temperature sensor type: {sensor_type}")
+            return
+            
+        logger.debug(f"Processing temperature reading: {temperature}°F ({sensor_type})")
+        with self.lock:
+            self.temperature_readings[sensor_type].append({
+                'timestamp': timestamp,
+                'temperature': temperature
+            })
+            
+            # Keep only last 50 readings per sensor
+            if len(self.temperature_readings[sensor_type]) > 50:
+                self.temperature_readings[sensor_type] = self.temperature_readings[sensor_type][-50:]
+    
+    def _get_latest_temperature(self, sensor_type: str = 'local') -> Optional[float]:
+        """Get the most recent temperature reading for a sensor type"""
+        sensor_type = sensor_type.lower()
+        if sensor_type in self.temperature_readings and self.temperature_readings[sensor_type]:
+            return self.temperature_readings[sensor_type][-1]['temperature']
+        return None
+    
     def get_current_basket_stats(self) -> Dict[str, Any]:
         """Get statistics for the current basket"""
         with self.lock:
@@ -802,7 +837,10 @@ class ProductionStatsEngine:
                 'completed_cycles': len(completed_cycles),
                 'aborted_cycles': len(aborted_cycles),
                 'current_stage': self.current_sequence_stage.value,
-                'system_status': 'active' if idle_time < 300 else 'idle'  # 5 minute idle threshold
+                'system_status': 'active' if idle_time < 300 else 'idle',  # 5 minute idle threshold
+                'current_fuel_level': self._get_latest_fuel_level(),
+                'current_temperature_local': self._get_latest_temperature('local'),
+                'current_temperature_remote': self._get_latest_temperature('remote')
             }
     
     def get_basket_history(self) -> Dict[str, Any]:

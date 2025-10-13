@@ -103,6 +103,14 @@ class WindowsMQTTClient:
             elif topic == 'monitor/fuel/gallons':
                 self._handle_fuel_level(payload)
                 
+            # Handle temperature monitoring
+            elif topic == 'monitor/temperature/local':
+                self._handle_temperature_reading(payload, 'local')
+            elif topic == 'monitor/temperature/remote':
+                self._handle_temperature_reading(payload, 'remote')
+            elif topic == 'monitor/temperature':  # Legacy topic for backward compatibility
+                self._handle_temperature_reading(payload, 'local')
+                
             # Handle command responses
             elif topic == 'controller/control/resp':
                 logger.info(f"Controller response: {payload}")
@@ -220,7 +228,16 @@ class WindowsMQTTClient:
         except ValueError:
             logger.warning(f"Invalid fuel level reading: {payload}")
     
-    def start(self):
+    def _handle_temperature_reading(self, payload, sensor_type):
+        """Handle temperature readings from monitor/temperature/local or monitor/temperature/remote"""
+        try:
+            temperature = float(payload)
+            logger.debug(f"Temperature ({sensor_type}): {temperature}°F")
+            self.production_stats.handle_temperature_reading(temperature, sensor_type)
+        except ValueError:
+            logger.warning(f"Invalid temperature reading: {payload}")
+    
+    def stop(self):
         """Start the MQTT client"""
         try:
             self.client = mqtt.Client()
