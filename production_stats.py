@@ -40,7 +40,7 @@ class SequenceEvent(Enum):
     START = "start"
 
 class SequenceStage(Enum):
-    """Sequence stages from r4/sequence/status"""
+    """Sequence stages from controller/sequence/status"""
     IDLE = "IDLE"
     EXTENDING = "EXTENDING"
     RETRACTING = "RETRACTING"
@@ -644,7 +644,7 @@ class ProductionStatsEngine:
                 logger.info("Production sequence ended")
     
     def handle_sequence_status(self, status: str, timestamp: float = None):
-        """Process sequence status from r4/sequence/status"""
+        """Process sequence status from controller/sequence/status"""
         if timestamp is None:
             timestamp = time.time()
             
@@ -690,7 +690,7 @@ class ProductionStatsEngine:
                 self._start_new_basket()
     
     def handle_pressure_reading(self, pressure: float, sensor_type: str = "hydraulic", timestamp: float = None):
-        """Process pressure readings from r4/pressure/* topics"""
+        """Process pressure readings from controller/pressure/* topics"""
         if timestamp is None:
             timestamp = time.time()
             

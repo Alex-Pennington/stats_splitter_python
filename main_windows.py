@@ -11,6 +11,7 @@ import signal
 import sys
 from web_server import create_app
 from production_stats import ProductionStatsEngine
+from stats_engine import StatsEngine
 from config import Config
 import paho.mqtt.client as mqtt
 
@@ -40,6 +41,14 @@ class WindowsMQTTClient:
             for topic in self.config.mqtt_topics:
                 client.subscribe(topic)
                 logger.info(f"Subscribed to topic: {topic}")
+            
+            # Subscribe to monitor command response topic
+            client.subscribe('monitor/control/resp')
+            logger.info("Subscribed to monitor command response topic: monitor/control/resp")
+            
+            # Subscribe to controller command response topic
+            client.subscribe('controller/control/resp')
+            logger.info("Subscribed to controller command response topic: controller/control/resp")
         else:
             logger.error(f"Failed to connect to MQTT broker, return code {rc}")
             self.connected = False
@@ -56,6 +65,22 @@ class WindowsMQTTClient:
             payload = msg.payload.decode().strip()
             
             logger.debug(f"Received message on topic '{topic}': {payload}")
+            
+            # Handle Monitor command responses
+            if topic == 'monitor/control/resp':
+                logger.info(f"Monitor response: {payload}")
+                # Store the latest response for web interface
+                if hasattr(self, 'latest_monitor_response'):
+                    self.latest_monitor_response = payload
+                return
+            
+            # Handle Controller command responses
+            elif topic == 'controller/control/resp':
+                logger.info(f"Controller response: {payload}")
+                # Store the latest response for web interface
+                if hasattr(self, 'latest_controller_response'):
+                    self.latest_controller_response = payload
+                return
             
             # Handle LogSplitter Controller sequence events
             if topic == 'controller/sequence/event':
@@ -114,6 +139,16 @@ class WindowsMQTTClient:
             # Handle command responses
             elif topic == 'controller/control/resp':
                 logger.info(f"Controller response: {payload}")
+            
+            # Track all numeric MQTT messages for statistics (if we have stats engine)
+            if hasattr(self, 'mqtt_stats_engine') and self.mqtt_stats_engine:
+                try:
+                    # Try to parse payload as a number for statistics
+                    numeric_value = float(payload)
+                    self.mqtt_stats_engine.add_value(topic, numeric_value)
+                except ValueError:
+                    # Non-numeric payloads are tracked with value 1 (just for counting)
+                    self.mqtt_stats_engine.add_value(topic, 1.0)
                 
         except Exception as e:
             logger.error(f"Error processing message from {topic}: {e}")
@@ -237,10 +272,14 @@ class WindowsMQTTClient:
         except ValueError:
             logger.warning(f"Invalid temperature reading: {payload}")
     
-    def stop(self):
+    def start(self):
         """Start the MQTT client"""
         try:
             self.client = mqtt.Client()
+            
+            # Initialize response storage
+            self.latest_monitor_response = None
+            self.latest_controller_response = None
             
             # Set credentials if provided
             if self.config.mqtt_username and self.config.mqtt_password:
@@ -294,8 +333,12 @@ def main():
     # Initialize production statistics engine
     production_stats = ProductionStatsEngine()
     
+    # Initialize MQTT topic statistics engine
+    mqtt_stats_engine = StatsEngine()
+    
     # Initialize MQTT client
     mqtt_client = WindowsMQTTClient(config, production_stats)
+    mqtt_client.mqtt_stats_engine = mqtt_stats_engine
     
     # Start MQTT client
     if not mqtt_client.start():
@@ -304,6 +347,10 @@ def main():
     
     # Create Flask app
     app = create_app(production_stats)
+    
+    # Store MQTT client and stats engine in app context for monitor commands
+    app.mqtt_client = mqtt_client
+    app.mqtt_stats_engine = mqtt_stats_engine
     
     # Start Flask web server in a separate thread
     def run_flask():

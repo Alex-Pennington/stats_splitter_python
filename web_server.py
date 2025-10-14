@@ -188,6 +188,21 @@ def create_app(production_stats):
             logger.error(f"Error resetting production stats: {e}")
             return jsonify({'error': str(e)}), 500
     
+    @app.route('/stats')
+    def mqtt_stats_dashboard():
+        """MQTT Statistics dashboard page"""
+        return render_template('dashboard.html')
+    
+    @app.route('/monitor')
+    def monitor_control():
+        """Monitor control panel page"""
+        return render_template('monitor_control.html')
+    
+    @app.route('/controller')
+    def controller_control():
+        """Controller control panel page"""
+        return render_template('controller_control.html')
+    
     @app.route('/api/monitor/status')
     def get_monitor_status():
         """Get current monitor readings (fuel, temperature)"""
@@ -205,11 +220,113 @@ def create_app(production_stats):
             logger.error(f"Error getting monitor status: {e}")
             return jsonify({'error': str(e)}), 500
     
+    @app.route('/api/monitor/command', methods=['POST'])
+    def send_monitor_command():
+        """Send command to LogSplitter Monitor via MQTT"""
+        try:
+            data = request.get_json()
+            if not data or 'command' not in data:
+                return jsonify({'error': 'Command is required'}), 400
+            
+            command = data['command'].strip()
+            if not command:
+                return jsonify({'error': 'Command cannot be empty'}), 400
+            
+            # Get the MQTT client from the application context
+            # Since we're using the Windows version, we need to access the global MQTT client
+            mqtt_client = getattr(app, 'mqtt_client', None)
+            if not mqtt_client:
+                return jsonify({'error': 'MQTT client not available'}), 503
+            
+            # Publish command to monitor control topic
+            try:
+                mqtt_client.client.publish('monitor/control', command)
+                logger.info(f"Sent monitor command: {command}")
+                
+                return jsonify({
+                    'message': 'Command sent successfully',
+                    'command': command,
+                    'topic': 'monitor/control'
+                })
+                
+            except Exception as e:
+                logger.error(f"Failed to publish MQTT command: {e}")
+                return jsonify({'error': f'Failed to send command: {str(e)}'}), 500
+                
+        except Exception as e:
+            logger.error(f"Error sending monitor command: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/controller/command', methods=['POST'])
+    def send_controller_command():
+        """Send command to LogSplitter Controller via MQTT"""
+        try:
+            data = request.get_json()
+            if not data or 'command' not in data:
+                return jsonify({'error': 'Command is required'}), 400
+            
+            command = data['command'].strip()
+            if not command:
+                return jsonify({'error': 'Command cannot be empty'}), 400
+            
+            # Get the MQTT client from the application context
+            mqtt_client = getattr(app, 'mqtt_client', None)
+            if not mqtt_client:
+                return jsonify({'error': 'MQTT client not available'}), 503
+            
+            # Publish command to controller control topic (controller/control)
+            try:
+                mqtt_client.client.publish('controller/control', command)
+                logger.info(f"Sent controller command to controller/control: {command}")
+                
+                return jsonify({
+                    'message': 'Command sent successfully',
+                    'command': command,
+                    'topic': 'controller/control',
+                    'note': 'Controller response will be published to controller/control/resp'
+                })
+                
+            except Exception as e:
+                logger.error(f"Failed to publish controller MQTT command: {e}")
+                return jsonify({'error': f'Failed to send command: {str(e)}'}), 500
+                
+        except Exception as e:
+            logger.error(f"Error sending controller command: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    # MQTT Statistics endpoints
+    @app.route('/api/mqtt/stats')
+    def get_mqtt_stats():
+        """Get MQTT topic statistics"""
+        try:
+            # Get the MQTT stats engine from app context
+            mqtt_stats_engine = getattr(app, 'mqtt_stats_engine', None)
+            if not mqtt_stats_engine:
+                return jsonify({
+                    'total_topics': 0,
+                    'total_messages': 0,
+                    'uptime_seconds': 0,
+                    'topics': {}
+                })
+            
+            stats = mqtt_stats_engine.get_all_stats()
+            
+            # Add timestamp information for each topic
+            for topic_name, topic_data in stats.get('topics', {}).items():
+                if topic_data.get('last_updated'):
+                    topic_data['last_timestamp'] = topic_data['last_updated']
+            
+            return jsonify(stats)
+            
+        except Exception as e:
+            logger.error(f"Error getting MQTT stats: {e}")
+            return jsonify({'error': str(e)}), 500
+    
     # Legacy endpoints for backward compatibility
     @app.route('/api/stats')
     def get_all_stats():
-        """Legacy endpoint - redirects to production summary"""
-        return get_production_summary()
+        """MQTT Statistics endpoint"""
+        return get_mqtt_stats()
     
     @app.route('/api/summary')
     def get_summary():

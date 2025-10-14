@@ -54,6 +54,7 @@ class TopicStats:
             'max': self.max_value if self.max_value != float('-inf') else None,
             'last_value': self.last_value,
             'last_updated': self.last_updated,
+            'last_timestamp': self.last_updated,  # Add timestamp field for frontend
             'rate_per_minute': self.rate_per_minute,
             'uptime_seconds': time.time() - self.start_time
         }

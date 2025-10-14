@@ -369,7 +369,7 @@ class SplitterSimulator:
             # Return to idle after event
             await asyncio.sleep(1.0 / self.simulation_speed)
             self.current_sequence_stage = "IDLE"
-            self.publish_message("r4/sequence/status", "IDLE")
+            self.publish_message("controller/sequence/status", "IDLE")
     
     async def publish_periodic_data(self):
         """Publish periodic data updates using LogSplitter Controller topics"""

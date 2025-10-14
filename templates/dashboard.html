@@ -87,6 +87,14 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .stale-topic {
+            background-color: #fee2e2 !important;
+            color: #991b1b;
+        }
+        .stale-topic .topic-name {
+            color: #991b1b;
+            font-weight: bold;
+        }
         .controls {
             text-align: center;
             margin-bottom: 20px;
@@ -130,6 +138,14 @@
         <div class="header">
             <h1>MQTT Statistics Dashboard</h1>
             <p>Real-time monitoring of MQTT topic statistics</p>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="/" style="background-color: #28a745; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">🏠 Production Dashboard</a>
+                <a href="/baskets" style="background-color: #007bff; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">📊 Basket History</a>
+                <a href="/viewer" style="background-color: #17a2b8; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">📈 Data Viewer</a>
+                <a href="/stats" style="background-color: #6f42c1; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">📡 MQTT Stats</a>
+                <a href="/monitor" style="background-color: #fd7e14; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">🔧 Monitor Control</a>
+                <a href="/controller" style="background-color: #dc2626; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; margin: 0 5px;">⚡ Controller Control</a>
+            </div>
         </div>
 
         <div class="controls">
@@ -169,6 +185,7 @@
                         <th class="number">Max</th>
                         <th class="number">Last Value</th>
                         <th class="number">Rate/min</th>
+                        <th class="number">Last Seen</th>
                     </tr>
                 </thead>
                 <tbody id="topics-tbody">
@@ -203,6 +220,38 @@
             return `${hours}h ${minutes}m ${secs}s`;
         }
 
+        function formatTimeSince(timestamp) {
+            if (!timestamp) return 'Never';
+            
+            const now = new Date();
+            const lastSeen = new Date(timestamp);
+            const diffSeconds = Math.floor((now - lastSeen) / 1000);
+            
+            if (diffSeconds < 60) {
+                return `${diffSeconds}s ago`;
+            } else if (diffSeconds < 3600) {
+                const minutes = Math.floor(diffSeconds / 60);
+                return `${minutes}m ago`;
+            } else if (diffSeconds < 86400) {
+                const hours = Math.floor(diffSeconds / 3600);
+                const minutes = Math.floor((diffSeconds % 3600) / 60);
+                return `${hours}h ${minutes}m ago`;
+            } else {
+                const days = Math.floor(diffSeconds / 86400);
+                return `${days}d ago`;
+            }
+        }
+
+        function isTopicStale(timestamp) {
+            if (!timestamp) return true;
+            
+            const now = new Date();
+            const lastSeen = new Date(timestamp);
+            const diffSeconds = Math.floor((now - lastSeen) / 1000);
+            
+            return diffSeconds > 60; // Consider stale if no message in 60+ seconds
+        }
+
         function showError(message) {
             const errorDiv = document.getElementById('error-message');
             errorDiv.textContent = message;
@@ -214,7 +263,7 @@
 
         async function refreshData() {
             try {
-                const response = await fetch('/api/stats');
+                const response = await fetch('/api/mqtt/stats');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -231,6 +280,13 @@
                     tbody.innerHTML = '';
                     Object.values(data.topics).forEach(topic => {
                         const row = tbody.insertRow();
+                        const isStale = isTopicStale(topic.last_timestamp);
+                        
+                        // Apply stale styling if needed
+                        if (isStale) {
+                            row.className = 'stale-topic';
+                        }
+                        
                         row.innerHTML = `
                             <td class="topic-name" title="${topic.topic}">${topic.topic}</td>
                             <td class="number">${formatNumber(topic.count)}</td>
@@ -239,10 +295,11 @@
                             <td class="number">${formatNumber(topic.max)}</td>
                             <td class="number">${formatNumber(topic.last_value)}</td>
                             <td class="number">${formatNumber(topic.rate_per_minute)}</td>
+                            <td class="number">${formatTimeSince(topic.last_timestamp)}</td>
                         `;
                     });
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No data available</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #666;">No data available</td></tr>';
                 }
                 
                 document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
