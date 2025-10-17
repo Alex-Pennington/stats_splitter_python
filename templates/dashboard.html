@@ -224,7 +224,7 @@
             if (!timestamp) return 'Never';
             
             const now = new Date();
-            const lastSeen = new Date(timestamp);
+            const lastSeen = new Date(timestamp * 1000);  // Convert Unix timestamp (seconds) to milliseconds
             const diffSeconds = Math.floor((now - lastSeen) / 1000);
             
             if (diffSeconds < 60) {
@@ -246,7 +246,7 @@
             if (!timestamp) return true;
             
             const now = new Date();
-            const lastSeen = new Date(timestamp);
+            const lastSeen = new Date(timestamp * 1000);  // Convert Unix timestamp (seconds) to milliseconds
             const diffSeconds = Math.floor((now - lastSeen) / 1000);
             
             return diffSeconds > 60; // Consider stale if no message in 60+ seconds
