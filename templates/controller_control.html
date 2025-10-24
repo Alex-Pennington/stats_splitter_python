@@ -795,6 +795,56 @@ Responses will be received from: controller/control/resp
                         systemStatus === 'active' ? 'YES' : 'NO';
                 }
 
+                // Update controller sensor readings from MQTT stats
+                const mqttResponse = await fetch('/api/mqtt/stats');
+                if (mqttResponse.ok) {
+                    const mqttData = await mqttResponse.json();
+                    const topics = mqttData.topics || {};
+                    
+                    // Update pressure readings
+                    const hydraulicPressure = topics['controller/pressure/hydraulic_system'];
+                    if (hydraulicPressure) {
+                        document.getElementById('hydraulic-pressure').textContent = 
+                            `${Math.round(hydraulicPressure.last_value || 0)} PSI`;
+                    }
+                    
+                    const filterPressure = topics['controller/pressure/filter'];
+                    if (filterPressure) {
+                        document.getElementById('filter-pressure').textContent = 
+                            `${Math.round(filterPressure.last_value || 0)} PSI`;
+                    }
+                    
+                    // Update voltage reading
+                    const systemVoltage = topics['controller/voltage/system'];
+                    if (systemVoltage) {
+                        document.getElementById('system-voltage').textContent = 
+                            `${(systemVoltage.last_value || 0).toFixed(1)}V`;
+                    }
+                    
+                    // Update safety status
+                    const safetyStatus = topics['controller/safety/active'];
+                    if (safetyStatus) {
+                        document.getElementById('safety-active').textContent = 
+                            safetyStatus.last_value ? 'YES' : 'NO';
+                    }
+                    
+                    const estopStatus = topics['controller/safety/estop'];
+                    if (estopStatus) {
+                        document.getElementById('estop-status').textContent = 
+                            estopStatus.last_value ? 'PRESSED' : 'NORMAL';
+                    }
+                    
+                    // Update limit switches (combine extend/retract limits)
+                    const extendLimit = topics['controller/inputs/extend_limit/state'];
+                    const retractLimit = topics['controller/inputs/retract_limit/state'];
+                    if (extendLimit || retractLimit) {
+                        const extendState = extendLimit ? (extendLimit.last_value ? 'EXT' : '') : '';
+                        const retractState = retractLimit ? (retractLimit.last_value ? 'RET' : '') : '';
+                        const limitStatus = [extendState, retractState].filter(s => s).join('/') || 'NORMAL';
+                        document.getElementById('limit-switches').textContent = limitStatus;
+                    }
+                }
+
                 document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
                 
             } catch (error) {
