@@ -590,40 +590,111 @@ Waiting for commands...
 
         async function updateSensorReadings() {
             try {
-                // Update from production stats (fuel, temperature)
-                const productionResponse = await fetch('/api/production/summary');
-                if (productionResponse.ok) {
-                    const data = await productionResponse.json();
-                    
-                    document.getElementById('fuel-reading').textContent = 
-                        data.current_fuel_level !== null ? `${data.current_fuel_level.toFixed(1)} gal` : '-- gal';
-                    
-                    document.getElementById('local-temp-reading').textContent = 
-                        data.current_temperature_local !== null ? `${data.current_temperature_local.toFixed(1)}°F` : '--°F';
-                    
-                    document.getElementById('remote-temp-reading').textContent = 
-                        data.current_temperature_remote !== null ? `${data.current_temperature_remote.toFixed(1)}°F` : '--°F';
-                    
-                    // Update system uptime from production stats
-                    const uptimeSeconds = data.uptime_seconds || 0;
+                // Get MQTT stats for live sensor data
+                const mqttResponse = await fetch('/api/mqtt/stats');
+                let mqttData = {};
+                if (mqttResponse.ok) {
+                    mqttData = await mqttResponse.json();
+                }
+
+                // Update weight readings from MQTT
+                const weightTopic = mqttData.topics && mqttData.topics['monitor/weight/reading'];
+                if (weightTopic && weightTopic.last_value !== null) {
+                    document.getElementById('weight-reading').textContent = `${parseFloat(weightTopic.last_value).toFixed(1)} lbs`;
+                } else {
+                    document.getElementById('weight-reading').textContent = '-- lbs';
+                }
+
+                const rawWeightTopic = mqttData.topics && mqttData.topics['monitor/weight/raw'];
+                if (rawWeightTopic && rawWeightTopic.last_value !== null) {
+                    document.getElementById('raw-weight-reading').textContent = parseFloat(rawWeightTopic.last_value).toFixed(0);
+                } else {
+                    document.getElementById('raw-weight-reading').textContent = '--';
+                }
+
+                // Update temperature readings from MQTT
+                const localTempTopic = mqttData.topics && mqttData.topics['monitor/temperature/local'];
+                if (localTempTopic && localTempTopic.last_value !== null) {
+                    document.getElementById('local-temp-reading').textContent = `${parseFloat(localTempTopic.last_value).toFixed(1)}°F`;
+                } else {
+                    document.getElementById('local-temp-reading').textContent = '--°F';
+                }
+
+                const remoteTempTopic = mqttData.topics && mqttData.topics['monitor/temperature/remote'];
+                if (remoteTempTopic && remoteTempTopic.last_value !== null) {
+                    document.getElementById('remote-temp-reading').textContent = `${parseFloat(remoteTempTopic.last_value).toFixed(1)}°F`;
+                } else {
+                    document.getElementById('remote-temp-reading').textContent = '--°F';
+                }
+
+                // Update fuel reading from MQTT
+                const fuelTopic = mqttData.topics && mqttData.topics['monitor/fuel/level'];
+                if (fuelTopic && fuelTopic.last_value !== null) {
+                    document.getElementById('fuel-reading').textContent = `${parseFloat(fuelTopic.last_value).toFixed(1)} gal`;
+                } else {
+                    document.getElementById('fuel-reading').textContent = '-- gal';
+                }
+
+                // Update electrical readings from MQTT
+                const voltageTopic = mqttData.topics && mqttData.topics['monitor/voltage/system'];
+                if (voltageTopic && voltageTopic.last_value !== null) {
+                    document.getElementById('voltage-reading').textContent = `${parseFloat(voltageTopic.last_value).toFixed(1)}V`;
+                } else {
+                    document.getElementById('voltage-reading').textContent = '--V';
+                }
+
+                const currentTopic = mqttData.topics && mqttData.topics['monitor/current/total'];
+                if (currentTopic && currentTopic.last_value !== null) {
+                    document.getElementById('current-reading').textContent = `${parseFloat(currentTopic.last_value).toFixed(0)}mA`;
+                } else {
+                    document.getElementById('current-reading').textContent = '--mA';
+                }
+
+                const powerTopic = mqttData.topics && mqttData.topics['monitor/power/total'];
+                if (powerTopic && powerTopic.last_value !== null) {
+                    document.getElementById('power-reading').textContent = `${parseFloat(powerTopic.last_value).toFixed(0)}mW`;
+                } else {
+                    document.getElementById('power-reading').textContent = '--mW';
+                }
+
+                // Update system readings from MQTT
+                const uptimeTopic = mqttData.topics && mqttData.topics['monitor/system/uptime'];
+                if (uptimeTopic && uptimeTopic.last_value !== null) {
+                    const uptimeSeconds = parseInt(uptimeTopic.last_value);
                     const hours = Math.floor(uptimeSeconds / 3600);
                     const minutes = Math.floor((uptimeSeconds % 3600) / 60);
                     document.getElementById('system-uptime').textContent = `${hours}h ${minutes}m`;
+                } else {
+                    document.getElementById('system-uptime').textContent = '--';
                 }
 
-                // Update from monitor status API
+                const memoryTopic = mqttData.topics && mqttData.topics['monitor/system/memory'];
+                if (memoryTopic && memoryTopic.last_value !== null) {
+                    document.getElementById('memory-reading').textContent = `${parseInt(memoryTopic.last_value)} bytes`;
+                } else {
+                    document.getElementById('memory-reading').textContent = '-- bytes';
+                }
+
+                // Update WiFi signal from MQTT
+                const wifiTopic = mqttData.topics && mqttData.topics['monitor/wifi/signal'];
+                if (wifiTopic && wifiTopic.last_value !== null) {
+                    document.getElementById('wifi-signal').textContent = `${parseInt(wifiTopic.last_value)}dBm`;
+                } else {
+                    document.getElementById('wifi-signal').textContent = '--dBm';
+                }
+
+                // Update MQTT status from MQTT
+                const mqttStatusTopic = mqttData.topics && mqttData.topics['monitor/mqtt/status'];
+                if (mqttStatusTopic && mqttStatusTopic.last_value !== null) {
+                    document.getElementById('mqtt-status').textContent = mqttStatusTopic.last_value;
+                } else {
+                    document.getElementById('mqtt-status').textContent = '--';
+                }
+
+                // Update from monitor status API for connection status
                 const monitorResponse = await fetch('/api/monitor/status');
                 if (monitorResponse.ok) {
                     const monitorData = await monitorResponse.json();
-                    
-                    // Update monitor-specific readings if available
-                    if (monitorData.fuel_readings_count !== undefined) {
-                        logMessage('DEBUG', `Monitor has ${monitorData.fuel_readings_count} fuel readings`);
-                    }
-                    if (monitorData.temp_local_readings_count !== undefined) {
-                        logMessage('DEBUG', `Monitor has ${monitorData.temp_local_readings_count} local temp readings`);
-                    }
-                    
                     updateConnectionStatus(true);
                 } else {
                     updateConnectionStatus(false);
