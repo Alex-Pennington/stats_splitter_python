@@ -430,10 +430,16 @@
         </div>
 
         <div class="response-area">
-            <div class="card-title">Command Responses</div>
+            <div class="card-title">MQTT Command Responses</div>
+            <div class="mqtt-response-info" style="margin-bottom: 10px; padding: 10px; background-color: #f3f4f6; border-radius: 5px; font-size: 0.9em; color: #6b7280;">
+                <strong>Live MQTT responses:</strong> Automatic monitoring of monitor device responses to commands sent via MQTT. 
+                Recent responses (last 30 seconds) from topics like <code>monitor/command/response</code>, <code>monitor/status/*</code> will appear in the log below.
+            </div>
+            <div class="card-title">All Command Responses & System Log</div>
             <button class="btn" onclick="clearLog()" style="float: right; margin-top: -30px;">Clear Log</button>
             <div class="response-log" id="response-log">Monitor Control Panel Ready
 Waiting for commands...
+MQTT Response Monitor Active - watching for device responses...
 
 </div>
         </div>
@@ -447,6 +453,7 @@ Waiting for commands...
         let isConnected = false;
         let commandHistory = [];
         let historyIndex = -1;
+        let lastSeenResponses = new Map(); // Track last seen MQTT responses to avoid duplicates
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -689,6 +696,37 @@ Waiting for commands...
                     document.getElementById('mqtt-status').textContent = mqttStatusTopic.last_value;
                 } else {
                     document.getElementById('mqtt-status').textContent = '--';
+                }
+
+                // Check for MQTT command responses
+                if (mqttData.topics) {
+                    const responseTopics = Object.keys(mqttData.topics).filter(topic => 
+                        topic.includes('/response') || topic.includes('/command') || topic.includes('/status') || 
+                        topic.includes('/result') || topic.includes('/ack')
+                    );
+                    
+                    responseTopics.forEach(topic => {
+                        const topicData = mqttData.topics[topic];
+                        if (topicData && topicData.last_value !== null && topicData.last_timestamp) {
+                            const timestamp = new Date(topicData.last_timestamp * 1000);
+                            const now = new Date();
+                            const timeDiff = (now - timestamp) / 1000; // seconds
+                            
+                            // Only show recent responses (within last 60 seconds) and avoid duplicates
+                            const responseKey = `${topic}_${topicData.last_timestamp}_${topicData.last_value}`;
+                            if (timeDiff < 60 && !lastSeenResponses.has(responseKey)) {
+                                lastSeenResponses.set(responseKey, true);
+                                const formattedTime = timestamp.toLocaleTimeString();
+                                logMessage('MQTT-RESP', `${topic.replace('monitor/', '')}: ${topicData.last_value}`);
+                                
+                                // Clean up old entries to prevent memory growth
+                                if (lastSeenResponses.size > 100) {
+                                    const oldEntries = Array.from(lastSeenResponses.keys()).slice(0, 50);
+                                    oldEntries.forEach(key => lastSeenResponses.delete(key));
+                                }
+                            }
+                        }
+                    });
                 }
 
                 // Update from monitor status API for connection status
