@@ -189,6 +189,14 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             border-left: 4px solid #6b7280;
         }
+        .mqtt-response-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 20px;
+        }
         .response-log {
             background: #111827;
             color: #f9fafb;
@@ -198,6 +206,19 @@
             font-size: 13px;
             height: 200px;
             overflow-y: auto;
+        }
+        .mqtt-response-log {
+            background: #1e3a8a;
+            color: #dbeafe;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 10px;
+            border: 1px solid #3b82f6;
             white-space: pre-wrap;
             margin-top: 10px;
         }
@@ -429,13 +450,21 @@
             </small>
         </div>
 
-        <div class="response-area">
-            <div class="card-title">MQTT Command Responses</div>
-            <div class="mqtt-response-info" style="margin-bottom: 10px; padding: 10px; background-color: #f3f4f6; border-radius: 5px; font-size: 0.9em; color: #6b7280;">
-                <strong>Live MQTT responses:</strong> Automatic monitoring of monitor device responses to commands sent via MQTT. 
-                Recent responses (last 30 seconds) from topics like <code>monitor/command/response</code>, <code>monitor/status/*</code> will appear in the log below.
+        <div class="mqtt-response-area">
+            <div class="card-title">📡 Monitor Device Responses</div>
+            <button class="btn primary" onclick="clearMqttResponses()" style="float: right; margin-top: -30px;">Clear Responses</button>
+            <div class="mqtt-info" style="margin-bottom: 10px; padding: 8px; background-color: #dbeafe; border-radius: 5px; font-size: 0.85em; color: #1e40af;">
+                <strong>Live Device Responses:</strong> Direct responses from the monitor hardware via <code>monitor/control/resp</code>
             </div>
-            <div class="card-title">All Command Responses & System Log</div>
+            <div class="mqtt-response-log" id="mqtt-response-log">Waiting for monitor device responses...
+Topic: monitor/control/resp
+Status: Ready to receive responses
+
+</div>
+        </div>
+
+        <div class="response-area">
+            <div class="card-title">System Log & Command History</div>
             <button class="btn" onclick="clearLog()" style="float: right; margin-top: -30px;">Clear Log</button>
             <div class="response-log" id="response-log">Monitor Control Panel Ready
 Waiting for commands...
@@ -501,6 +530,18 @@ MQTT Response Monitor Active - watching for device responses...
 
         function clearLog() {
             document.getElementById('response-log').textContent = 'Log cleared\n';
+        }
+
+        function clearMqttResponses() {
+            document.getElementById('mqtt-response-log').textContent = 'MQTT responses cleared\nWaiting for monitor device responses...\n';
+        }
+
+        function logMqttResponse(message) {
+            const log = document.getElementById('mqtt-response-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const formattedMessage = `[${timestamp}] ${message}\n`;
+            log.textContent += formattedMessage;
+            log.scrollTop = log.scrollHeight;
         }
 
         function showAlert(message, type = 'info') {
@@ -698,11 +739,29 @@ MQTT Response Monitor Active - watching for device responses...
                     document.getElementById('mqtt-status').textContent = '--';
                 }
 
-                // Check for MQTT command responses
+                // Check for monitor control responses (dedicated window)
+                const monitorControlResp = mqttData.topics && mqttData.topics['monitor/control/resp'];
+                if (monitorControlResp && monitorControlResp.last_value !== null && monitorControlResp.last_timestamp) {
+                    const timestamp = new Date(monitorControlResp.last_timestamp * 1000);
+                    const now = new Date();
+                    const timeDiff = (now - timestamp) / 1000; // seconds
+                    
+                    // Show recent responses (within last 60 seconds)
+                    if (timeDiff < 60) {
+                        const responseKey = `monitor_control_resp_${monitorControlResp.last_timestamp}_${monitorControlResp.last_value}`;
+                        if (!lastSeenResponses.has(responseKey)) {
+                            lastSeenResponses.set(responseKey, true);
+                            logMqttResponse(`DEVICE: ${monitorControlResp.last_value}`);
+                        }
+                    }
+                }
+
+                // Check for other MQTT command responses (general log)
                 if (mqttData.topics) {
                     const responseTopics = Object.keys(mqttData.topics).filter(topic => 
-                        topic.includes('/response') || topic.includes('/command') || topic.includes('/status') || 
-                        topic.includes('/result') || topic.includes('/ack')
+                        (topic.includes('/response') || topic.includes('/command') || topic.includes('/status') || 
+                        topic.includes('/result') || topic.includes('/ack')) && 
+                        topic !== 'monitor/control/resp' // Exclude control responses (handled above)
                     );
                     
                     responseTopics.forEach(topic => {

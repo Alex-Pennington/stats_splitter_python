@@ -192,6 +192,14 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             border-left: 4px solid #6b7280;
         }
+        .mqtt-response-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #10b981;
+            margin-bottom: 20px;
+        }
         .response-log {
             background: #111827;
             color: #f9fafb;
@@ -203,6 +211,19 @@
             overflow-y: auto;
             white-space: pre-wrap;
             margin-top: 10px;
+        }
+        .mqtt-response-log {
+            background: #064e3b;
+            color: #ecfdf5;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 10px;
+            border: 1px solid #10b981;
         }
         .alert {
             padding: 12px;
@@ -593,8 +614,21 @@
             </small>
         </div>
 
+        <div class="mqtt-response-area">
+            <div class="card-title">🔥 Controller Device Responses</div>
+            <button class="btn success" onclick="clearMqttResponses()" style="float: right; margin-top: -30px;">Clear Responses</button>
+            <div class="mqtt-info" style="margin-bottom: 10px; padding: 8px; background-color: #ecfdf5; border-radius: 5px; font-size: 0.85em; color: #065f46;">
+                <strong>Live Device Responses:</strong> Direct responses from the controller hardware via <code>controller/control/resp</code>
+            </div>
+            <div class="mqtt-response-log" id="mqtt-response-log">Waiting for controller device responses...
+Topic: controller/control/resp
+Status: Ready to receive responses
+
+</div>
+        </div>
+
         <div class="response-area">
-            <div class="card-title">Controller Responses</div>
+            <div class="card-title">System Log & Command History</div>
             <button class="btn" onclick="clearLog()" style="float: right; margin-top: -30px;">Clear Log</button>
             <div class="response-log" id="response-log">Controller Control Panel Ready
 Waiting for commands...
@@ -614,6 +648,7 @@ Responses will be received from: controller/control/resp
         let isConnected = false;
         let commandHistory = [];
         let historyIndex = -1;
+        let lastSeenControllerResponses = new Map(); // Track controller device responses
         let relayStates = {};
 
         // Initialize the page
@@ -664,6 +699,18 @@ Responses will be received from: controller/control/resp
 
         function clearLog() {
             document.getElementById('response-log').textContent = 'Log cleared\n';
+        }
+
+        function clearMqttResponses() {
+            document.getElementById('mqtt-response-log').textContent = 'MQTT responses cleared\nWaiting for controller device responses...\n';
+        }
+
+        function logMqttResponse(message) {
+            const log = document.getElementById('mqtt-response-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const formattedMessage = `[${timestamp}] ${message}\n`;
+            log.textContent += formattedMessage;
+            log.scrollTop = log.scrollHeight;
         }
 
         function showAlert(message, type = 'info') {
@@ -842,6 +889,29 @@ Responses will be received from: controller/control/resp
                         const retractState = retractLimit ? (retractLimit.last_value ? 'RET' : '') : '';
                         const limitStatus = [extendState, retractState].filter(s => s).join('/') || 'NORMAL';
                         document.getElementById('limit-switches').textContent = limitStatus;
+                    }
+
+                    // Check for controller command responses
+                    const controllerRespTopic = topics['controller/control/resp'];
+                    if (controllerRespTopic && controllerRespTopic.last_value !== null && controllerRespTopic.last_timestamp) {
+                        const timestamp = new Date(controllerRespTopic.last_timestamp * 1000);
+                        const now = new Date();
+                        const timeDiff = (now - timestamp) / 1000; // seconds
+                        
+                        // Show recent responses (within last 60 seconds)
+                        if (timeDiff < 60) {
+                            const responseKey = `controller_resp_${controllerRespTopic.last_timestamp}_${controllerRespTopic.last_value}`;
+                            if (!lastSeenControllerResponses.has(responseKey)) {
+                                lastSeenControllerResponses.set(responseKey, true);
+                                logMqttResponse(`DEVICE: ${controllerRespTopic.last_value}`);
+                                
+                                // Clean up old entries to prevent memory growth
+                                if (lastSeenControllerResponses.size > 50) {
+                                    const oldEntries = Array.from(lastSeenControllerResponses.keys()).slice(0, 25);
+                                    oldEntries.forEach(key => lastSeenControllerResponses.delete(key));
+                                }
+                            }
+                        }
                     }
                 }
 
